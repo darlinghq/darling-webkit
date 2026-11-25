@@ -1,3 +1,5 @@
+set(MACOSX_FRAMEWORK_IDENTIFIER com.apple.WebKitLegacy)
+
 find_library(APPLICATIONSERVICES_LIBRARY ApplicationServices)
 find_library(QUARTZ_LIBRARY Quartz)
 find_library(SECURITYINTERFACE_LIBRARY SecurityInterface)
@@ -9,6 +11,14 @@ add_definitions(-fobjc-weak)
 list(APPEND WebKitLegacy_PRIVATE_LIBRARIES
     ${SECURITYINTERFACE_LIBRARY}
 )
+
+if (DARLING)
+    # DARLING: as on macOS (observed on 26.7.3 and 10.14.4, and the install
+    # names in the SDK's text stubs), WebKitLegacy is a framework inside WebKit's
+    # bundle, not a framework of its own in /System/Library/Frameworks.
+    set_target_properties(WebKitLegacy PROPERTIES
+        INSTALL_NAME_DIR /System/Library/Frameworks/WebKit.framework/Versions/A/Frameworks)
+endif ()
 
 list(APPEND WebKitLegacy_PRIVATE_INCLUDE_DIRECTORIES
     "${PAL_FRAMEWORK_HEADERS_DIR}"
@@ -29,11 +39,27 @@ list(APPEND WebKitLegacy_UNIFIED_SOURCE_LIST_FILES
 )
 WEBKIT_COMPUTE_SOURCES(WebKitLegacy)
 
+# DARLING: the sources the Xcode project builds that neither list CMake reads
+# names: Sources.txt is not one of the unified source lists here, and the
+# inspector, crypto and history item clients are in no list at all.
+list(APPEND WebKitLegacy_SOURCES
+    WebCoreSupport/LegacySocketProvider.cpp
+    WebCoreSupport/LegacyWebPageDebuggable.cpp
+    WebCoreSupport/LegacyWebPageInspectorController.cpp
+    WebCoreSupport/SocketStreamHandle.cpp
+    WebCoreSupport/SocketStreamHandleImpl.cpp
+    WebCoreSupport/SocketStreamHandleImplCFNet.cpp
+    WebCoreSupport/WebCryptoClient.mm
+    WebCoreSupport/WebSocketChannel.cpp
+
+    mac/WebCoreSupport/LegacyHistoryItemClient.mm
+)
+
 list(APPEND WebKitLegacy_SOURCES
     cf/WebCoreSupport/WebInspectorClientCF.cpp
 
     mac/DefaultDelegates/WebDefaultEditingDelegate.m
-    mac/DefaultDelegates/WebDefaultPolicyDelegate.m
+    mac/DefaultDelegates/WebDefaultPolicyDelegate.mm
     mac/DefaultDelegates/WebDefaultUIDelegate.mm
 
     mac/History/BackForwardList.mm
@@ -393,7 +419,6 @@ set(WebKitLegacy_LEGACY_FORWARDING_HEADERS_FILES
     mac/Misc/WebNSURLRequestExtras.h
     mac/Misc/WebSharingServicePickerController.h
     mac/Misc/WebLocalizableStringsInternal.h
-    mac/Misc/WebNSDataExtrasPrivate.h
     mac/Misc/WebNSUserDefaultsExtras.h
     mac/Misc/WebNSEventExtras.h
     mac/Misc/WebNSURLExtras.h
@@ -408,7 +433,6 @@ set(WebKitLegacy_LEGACY_FORWARDING_HEADERS_FILES
     mac/Misc/WebUserContentURLPattern.h
     mac/Misc/WebKitVersionChecks.h
     mac/Misc/WebLocalizableStrings.h
-    mac/Misc/WebTypesInternal.h
     mac/Misc/WebCoreStatistics.h
     mac/Misc/WebNSDataExtras.h
     mac/Misc/WebElementDictionary.h
@@ -469,7 +493,6 @@ set(WebKitLegacy_LEGACY_FORWARDING_HEADERS_FILES
     mac/WebCoreSupport/WebGeolocationClient.h
     mac/WebCoreSupport/WebFrameNetworkingContext.h
     mac/WebCoreSupport/PopupMenuMac.h
-    mac/WebCoreSupport/WebDeviceOrientationClient.h
     mac/WebCoreSupport/WebValidationMessageClient.h
     mac/WebCoreSupport/WebCachedFramePlatformData.h
     mac/WebCoreSupport/WebFrameLoaderClient.h
@@ -564,12 +587,9 @@ add_definitions("-include WebKitPrefix.h")
 
 set(C99_FILES
     mac/DefaultDelegates/WebDefaultEditingDelegate.m
-    mac/DefaultDelegates/WebDefaultUIDelegate.m
 
     mac/Misc/WebKitErrors.m
     mac/Misc/WebKitStatistics.m
-    mac/Misc/WebKitSystemBits.m
-    mac/Misc/WebNSArrayExtras.m
     mac/Misc/WebNSControlExtras.m
     mac/Misc/WebNSEventExtras.m
     mac/Misc/WebNSPrintOperationExtras.m
@@ -577,9 +597,7 @@ set(C99_FILES
     mac/Misc/WebNSViewExtras.m
     mac/Misc/WebNSWindowExtras.m
 
-    mac/Plugins/WebPluginsPrivate.m
 
-    mac/Plugins/Hosted/WebTextInputWindowController.m
 
     mac/WebView/WebFormDelegate.m
 )
@@ -595,10 +613,21 @@ foreach (_file ${WebKitLegacy_SOURCES})
         set_source_files_properties(${_file} PROPERTIES COMPILE_FLAGS -std=c99)
     elseif (NOT ${_cpp_index} EQUAL -1)
         set_source_files_properties(${_file} PROPERTIES COMPILE_FLAGS -std=c++2b)
+    elseif (DARLING AND _file MATCHES "\\.m$")
+        # DARLING: CMake compiles .m files as Objective-C, and -ObjC++ does not
+        # change that (the -std flag is then refused): they are given the
+        # Objective-C++ language instead, which also brings the C++ standard.
+        set_source_files_properties(${_file} PROPERTIES LANGUAGE OBJCXX)
     else ()
         set_source_files_properties(${_file} PROPERTIES COMPILE_FLAGS "-ObjC++ -std=c++2b")
     endif ()
 endforeach ()
+
+if (DARLING)
+    # DARLING: a private header of the Xcode project that the list lacks;
+    # WebKit's _WKFeature.h imports it.
+    list(APPEND WebKitLegacy_LEGACY_FORWARDING_HEADERS_FILES mac/WebView/WebFeature.h)
+endif ()
 
 foreach (_file ${WebKitLegacy_LEGACY_FORWARDING_HEADERS_FILES})
     get_filename_component(_name "${_file}" NAME)
@@ -608,10 +637,24 @@ foreach (_file ${WebKitLegacy_LEGACY_FORWARDING_HEADERS_FILES})
     endif ()
 endforeach ()
 
+# DARLING: WebKitLegacy's own templates and preferences, as its Xcode build
+# passes them (mac/Scripts/generate-preferences.sh). The command used WebKit's
+# lists, which are only set later, when WebKit is configured, so they were empty.
+set(WebKitLegacy_WEB_PREFERENCES_TEMPLATES
+    ${WEBKITLEGACY_DIR}/mac/Scripts/PreferencesTemplates/WebPreferencesDefinitions.h.erb
+    ${WEBKITLEGACY_DIR}/mac/Scripts/PreferencesTemplates/WebPreferencesExperimentalFeatures.mm.erb
+    ${WEBKITLEGACY_DIR}/mac/Scripts/PreferencesTemplates/WebPreferencesInternalFeatures.mm.erb
+    ${WEBKITLEGACY_DIR}/mac/Scripts/PreferencesTemplates/WebViewPreferencesChangedGenerated.mm.erb
+)
+set(WebKitLegacy_WEB_PREFERENCES
+    ${WTF_SCRIPTS_DIR}/Preferences/UnifiedWebPreferences.yaml
+)
+set_source_files_properties(${WebKitLegacy_WEB_PREFERENCES} PROPERTIES GENERATED TRUE)
+
 add_custom_command(
     OUTPUT ${WebKitLegacy_DERIVED_SOURCES_DIR}/WebViewPreferencesChangedGenerated.mm ${WebKitLegacy_DERIVED_SOURCES_DIR}/WebPreferencesInternalFeatures.mm ${WebKitLegacy_DERIVED_SOURCES_DIR}/WebPreferencesExperimentalFeatures.mm ${WebKitLegacy_DERIVED_SOURCES_DIR}/WebPreferencesDefinitions.h
-    DEPENDS ${WebKit_WEB_PREFERENCES_TEMPLATES} ${WebKit_WEB_PREFERENCES} WTF_CopyPreferences
-    COMMAND ${RUBY_EXECUTABLE} ${WTF_SCRIPTS_DIR}/GeneratePreferences.rb --frontend WebKitLegacy --outputDir "${WebKitLegacy_DERIVED_SOURCES_DIR}" --template "$<JOIN:${WebKit_WEB_PREFERENCES_TEMPLATES},;--template;>" ${WebKit_WEB_PREFERENCES}
+    DEPENDS ${WebKitLegacy_WEB_PREFERENCES_TEMPLATES} ${WebKitLegacy_WEB_PREFERENCES} WTF_CopyPreferences
+    COMMAND ${RUBY_EXECUTABLE} ${WTF_SCRIPTS_DIR}/GeneratePreferences.rb --frontend WebKitLegacy --outputDir "${WebKitLegacy_DERIVED_SOURCES_DIR}" --template "$<JOIN:${WebKitLegacy_WEB_PREFERENCES_TEMPLATES},;--template;>" ${WebKitLegacy_WEB_PREFERENCES}
     COMMAND_EXPAND_LISTS
     VERBATIM
 )
@@ -624,4 +667,11 @@ list(APPEND WebKitLegacy_SOURCES
 
 set(WebKitLegacy_OUTPUT_NAME WebKitLegacy)
 
-set(CMAKE_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS} "-compatibility_version 1 -current_version ${WEBKIT_MAC_VERSION} -framework SecurityInterface")
+# DARLING: the flags are one string; set() with the old value and a new one
+# makes a list, whose ";" ends the link command in the shell. Darling gives every
+# WebKit framework its version itself (DARLING_WEBKIT_VERSION_FLAGS).
+if (DARLING)
+    string(APPEND CMAKE_SHARED_LINKER_FLAGS " -framework SecurityInterface")
+else ()
+    string(APPEND CMAKE_SHARED_LINKER_FLAGS " -compatibility_version 1 -current_version ${WEBKIT_MAC_VERSION} -framework SecurityInterface")
+endif ()

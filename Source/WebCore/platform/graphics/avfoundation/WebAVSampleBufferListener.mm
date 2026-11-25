@@ -24,6 +24,9 @@
  */
 
 #import "config.h"
+
+// DARLING: needs CoreMedia and VideoToolbox, whose soft links come with AVFoundation
+#if USE(AVFOUNDATION)
 #import "WebAVSampleBufferListener.h"
 
 #import "WebSampleBufferVideoRendering.h"
@@ -299,3 +302,5 @@ void WebAVSampleBufferListener::stopObservingAudioRenderer(AVSampleBufferAudioRe
 }
 
 } // namespace WebCore
+
+#endif // USE(AVFOUNDATION)

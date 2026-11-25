@@ -659,7 +659,7 @@
 #define ENABLE_SCENE_GEOMETRY_UPDATE 1
 #endif
 
-#if PLATFORM(MAC)
+#if !defined(ENABLE_MOMENTUM_EVENT_DISPATCHER) && PLATFORM(MAC)
 #define ENABLE_MOMENTUM_EVENT_DISPATCHER 1
 #endif
 
@@ -968,9 +968,10 @@
 #define ENABLE_VARIATION_FONTS 1
 #endif
 
+/* DARLING: grouped so that a value the build sets is kept on macOS too. */
 #if !defined(ENABLE_VIDEO_PRESENTATION_MODE) \
-    && (PLATFORM(IOS_FAMILY) && HAVE(AVKIT)) \
-    || PLATFORM(MAC)
+    && ((PLATFORM(IOS_FAMILY) && HAVE(AVKIT)) \
+    || PLATFORM(MAC))
 #define ENABLE_VIDEO_PRESENTATION_MODE 1
 #endif
 

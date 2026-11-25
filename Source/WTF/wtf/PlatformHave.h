@@ -41,6 +41,17 @@
 #include <features.h>
 #endif
 
+/* DARLING: the value USE(APPLE_INTERNAL_SDK) gets in PlatformUse.h, which
+   comes after this file: what the build sets, or else whether CFPriv.h is
+   there. */
+#if defined(USE_APPLE_INTERNAL_SDK)
+#define WTF_HAVE_APPLE_INTERNAL_SDK USE_APPLE_INTERNAL_SDK
+#elif defined __has_include && __has_include(<CoreFoundation/CFPriv.h>)
+#define WTF_HAVE_APPLE_INTERNAL_SDK 1
+#else
+#define WTF_HAVE_APPLE_INTERNAL_SDK 0
+#endif
+
 /* ==== Platform additions: additions to PlatformHave.h from outside the main repository ==== */
 
 // This can't use USE(APPLE_INTERNAL_SDK) because this comes before PlatformUse.h.
@@ -289,8 +300,14 @@
 #define HAVE_FLOAT16 1
 #endif
 
-#if PLATFORM(COCOA) && !PLATFORM(WATCHOS) && !PLATFORM(APPLETV) && !PLATFORM(MACCATALYST)
+/* DARLING: a value the build sets is kept. */
+#if PLATFORM(COCOA) && !PLATFORM(WATCHOS) && !PLATFORM(APPLETV) && !PLATFORM(MACCATALYST) && !defined(HAVE_APP_LINKS)
 #define HAVE_APP_LINKS 1
+#endif
+
+/* DARLING: the window server can clip a window to a shape (CGSSetWindowClipShape). */
+#if PLATFORM(MAC) && !defined(HAVE_CGS_WINDOW_CLIP_SHAPE)
+#define HAVE_CGS_WINDOW_CLIP_SHAPE 1
 #endif
 
 #if PLATFORM(IOS_FAMILY) && !PLATFORM(MACCATALYST)
@@ -322,11 +339,19 @@
 #define HAVE_PARENTAL_CONTROLS 1
 #endif
 
-#if PLATFORM(COCOA)
+/* DARLING: a value the build sets is kept. */
+#if PLATFORM(COCOA) && !defined(HAVE_AVKIT)
 #define HAVE_AVKIT 1
 #endif
 
-#if PLATFORM(COCOA)
+/* DARLING: whether FontParser (FPFont*) unpacks web fonts; Cocoa platforms
+   have it. Without it the data goes to CoreText as it is. */
+#if PLATFORM(COCOA) && !defined(HAVE_FONT_PARSER)
+#define HAVE_FONT_PARSER 1
+#endif
+
+/* DARLING: a value the build sets is kept. */
+#if PLATFORM(COCOA) && !defined(HAVE_MEDIA_ACCESSIBILITY_FRAMEWORK)
 #define HAVE_MEDIA_ACCESSIBILITY_FRAMEWORK 1
 #endif
 
@@ -338,7 +363,8 @@
 #define HAVE_MEDIA_ACCESSIBILITY_PROFILES_API 1
 #endif
 
-#if PLATFORM(MAC) || PLATFORM(MACCATALYST)
+/* DARLING: a value the build sets is kept. */
+#if (PLATFORM(MAC) || PLATFORM(MACCATALYST)) && !defined(HAVE_APPLE_GRAPHICS_CONTROL)
 #define HAVE_APPLE_GRAPHICS_CONTROL 1
 #endif
 
@@ -358,7 +384,8 @@
 #define HAVE_THREAD_TIME_CONSTRAINTS 1
 #endif
 
-#if PLATFORM(COCOA)
+/* DARLING: a value the build sets is kept. */
+#if PLATFORM(COCOA) && !defined(HAVE_AVASSETREADER)
 #define HAVE_AVASSETREADER 1
 #endif
 
@@ -404,7 +431,8 @@
 #define HAVE_NS_ACTIVITY 1
 #endif
 
-#if PLATFORM(MAC)
+/* DARLING: a value the build sets is kept. */
+#if PLATFORM(MAC) && !defined(HAVE_TOUCH_BAR)
 #define HAVE_TOUCH_BAR 1
 #endif
 
@@ -424,7 +452,8 @@
 #define HAVE_MEMMEM 1
 #endif
 
-#if PLATFORM(MAC) || PLATFORM(IOS) || PLATFORM(MACCATALYST) || PLATFORM(VISION) || PLATFORM(APPLETV)
+/* DARLING: a value the build sets is kept. */
+#if (PLATFORM(MAC) || PLATFORM(IOS) || PLATFORM(MACCATALYST) || PLATFORM(VISION) || PLATFORM(APPLETV)) && !defined(HAVE_AVCONTENTKEYSESSION)
 #define HAVE_AVCONTENTKEYSESSION 1
 #endif
 
@@ -468,7 +497,7 @@
 #define HAVE_LINK_PREVIEW 1
 #endif
 
-#if PLATFORM(COCOA) || (defined(USE_CURL) && USE_CURL)
+#if !defined(HAVE_ALTERNATIVE_SERVICE) && (PLATFORM(COCOA) || (defined(USE_CURL) && USE_CURL))
 #define HAVE_ALTERNATIVE_SERVICE 1
 #endif
 
@@ -541,7 +570,7 @@
 #define HAVE_AVPLAYER_RESOURCE_CONSERVATION_LEVEL 1
 #endif
 
-#if PLATFORM(IOS) || PLATFORM(MAC) || PLATFORM(VISION)
+#if !defined(HAVE_APP_SSO) && (PLATFORM(IOS) || PLATFORM(MAC) || PLATFORM(VISION))
 #define HAVE_APP_SSO 1
 #endif
 
@@ -557,7 +586,8 @@
 #define HAVE_OS_SIGNPOST 1
 #endif
 
-#if PLATFORM(MAC)
+/* DARLING: a value the build sets is kept. */
+#if PLATFORM(MAC) && !defined(HAVE_AVPLAYER_VIDEORANGEOVERRIDE)
 #define HAVE_AVPLAYER_VIDEORANGEOVERRIDE 1
 #endif
 
@@ -565,7 +595,7 @@
 #define HAVE_CG_PATH_UNEVEN_CORNERS_ROUNDEDRECT 1
 #endif
 
-#if PLATFORM(WATCHOS) || PLATFORM(APPLETV) || (PLATFORM(IOS_FAMILY) && !(defined __has_include && __has_include(<CoreFoundation/CFPriv.h>)))
+#if PLATFORM(WATCHOS) || PLATFORM(APPLETV) || (PLATFORM(IOS_FAMILY) && !WTF_HAVE_APPLE_INTERNAL_SDK)
 #define HAVE_NSPROGRESS_PUBLISHING_SPI 1
 #endif
 
@@ -605,7 +635,8 @@
 #define HAVE_MAC_JIT_RESTRICTIONS 1
 #endif
 
-#if PLATFORM(MAC)
+/* DARLING: a value the build sets is kept. */
+#if PLATFORM(MAC) && !defined(HAVE_AVAUDIO_ROUTING_ARBITER)
 #define HAVE_AVAUDIO_ROUTING_ARBITER 1
 #endif
 
@@ -613,7 +644,8 @@
 #define HAVE_MEDIA_USAGE_FRAMEWORK 1
 #endif
 
-#if PLATFORM(IOS) || PLATFORM(MAC) || PLATFORM(VISION)
+/* DARLING: a build without PassKit sets HAVE_PASSKIT_FRAMEWORK to 0. */
+#if (PLATFORM(IOS) || PLATFORM(MAC) || PLATFORM(VISION)) && !defined(HAVE_PASSKIT_FRAMEWORK)
 #define HAVE_PASSKIT_FRAMEWORK 1
 #endif
 
@@ -665,7 +697,9 @@
 #endif
 
 #if PLATFORM(COCOA)
+#if !defined(HAVE_LSDATABASECONTEXT)
 #define HAVE_LSDATABASECONTEXT 1
+#endif
 #define HAVE_CGS_FIX_FOR_RADAR_97530095 0
 #endif
 
@@ -722,8 +756,11 @@
 #define HAVE_NS_DIRECT_SUPPORT 1
 #endif
 
-#if PLATFORM(COCOA) && !PLATFORM(WATCHOS) && !PLATFORM(APPLETV)
+#if !defined(HAVE_CONTACTSUI) && PLATFORM(COCOA) && !PLATFORM(WATCHOS) && !PLATFORM(APPLETV)
 #define HAVE_CONTACTSUI 1
+#endif
+
+#if !defined(HAVE_CONTACTS) && PLATFORM(COCOA) && !PLATFORM(WATCHOS) && !PLATFORM(APPLETV)
 #define HAVE_CONTACTS 1
 #endif
 
@@ -740,15 +777,18 @@
 #define HAVE_DDSCANNER_QOS_CONFIGURATION 1
 #endif
 
-#if PLATFORM(COCOA) && !PLATFORM(WATCHOS) && (!PLATFORM(APPLETV) || __TV_OS_VERSION_MIN_REQUIRED >= 180000)
+/* DARLING: a value the build sets is kept. */
+#if PLATFORM(COCOA) && !PLATFORM(WATCHOS) && (!PLATFORM(APPLETV) || __TV_OS_VERSION_MIN_REQUIRED >= 180000) \
+    && !defined(HAVE_SPEECHRECOGNIZER)
 #define HAVE_SPEECHRECOGNIZER 1
 #endif
 
-#if PLATFORM(IOS) || PLATFORM(MACCATALYST) || PLATFORM(MAC) || PLATFORM(VISION) || PLATFORM(APPLETV)
+#if !defined(HAVE_AVCAPTUREDEVICE) && (PLATFORM(IOS) || PLATFORM(MACCATALYST) || PLATFORM(MAC) || PLATFORM(VISION) || PLATFORM(APPLETV))
 #define HAVE_AVCAPTUREDEVICE 1
 #endif
 
-#if PLATFORM(MAC) && defined __has_include && __has_include(<CoreFoundation/CFPriv.h>)
+/* DARLING: these follow the internal SDK, not CFPriv.h (see above). */
+#if PLATFORM(MAC) && WTF_HAVE_APPLE_INTERNAL_SDK
 #define HAVE_SANDBOX_MESSAGE_FILTERING 1
 #endif
 
@@ -798,7 +838,9 @@
 #endif
 
 #if PLATFORM(MAC)
+#if !defined(HAVE_STATIC_FONT_REGISTRY)
 #define HAVE_STATIC_FONT_REGISTRY 1
+#endif
 #define HAVE_DATA_DETECTORS_MAC_ACTION 1
 #endif
 
@@ -813,11 +855,13 @@
 #define HAVE_NSURL_TITLE 1
 #endif
 
-#if PLATFORM(MAC) || PLATFORM(IOS) || PLATFORM(MACCATALYST) || PLATFORM(VISION) || (PLATFORM(APPLETV) && __has_include(<PDFKit/PDFKit.h>))
+/* DARLING: a value the build sets is kept. */
+#if (PLATFORM(MAC) || PLATFORM(IOS) || PLATFORM(MACCATALYST) || PLATFORM(VISION) || (PLATFORM(APPLETV) && __has_include(<PDFKit/PDFKit.h>))) && !defined(HAVE_PDFKIT)
 #define HAVE_PDFKIT 1
 #endif
 
-#if PLATFORM(COCOA) && !PLATFORM(WATCHOS)
+/* DARLING: a value the build sets is kept. */
+#if PLATFORM(COCOA) && !PLATFORM(WATCHOS) && !defined(HAVE_VISION)
 #define HAVE_VISION 1
 #endif
 
@@ -834,7 +878,9 @@
 #define HAVE_CFNETWORK_NSURLSESSION_HSTS_WITH_UNTRUSTED_ROOT 1
 #define HAVE_NSURLSESSION_TASK_DELEGATE 1
 #define HAVE_IMAGE_RESTRICTED_DECODING 1
+#if !defined(HAVE_XPC_CONNECTION_COPY_INVALIDATION_REASON)
 #define HAVE_XPC_CONNECTION_COPY_INVALIDATION_REASON 1
+#endif
 #endif
 
 #if ((PLATFORM(IOS) || PLATFORM(VISION)) && !PLATFORM(IOS_SIMULATOR)) \
@@ -847,7 +893,7 @@
 #define HAVE_NSURLPROTOCOL_WITH_SKIPAPPSSO 1
 #endif
 
-#if PLATFORM(IOS) || PLATFORM(MACCATALYST) || PLATFORM(MAC) || PLATFORM(VISION)
+#if !defined(HAVE_UPDATE_WEB_ACCESSIBILITY_SETTINGS) && (PLATFORM(IOS) || PLATFORM(MACCATALYST) || PLATFORM(MAC) || PLATFORM(VISION))
 #define HAVE_UPDATE_WEB_ACCESSIBILITY_SETTINGS 1
 #endif
 
@@ -956,19 +1002,27 @@
 #define HAVE_CORE_LOCATION 1
 #endif
 
-#if PLATFORM(MAC)
+/* DARLING: a value the build sets is kept. */
+#if PLATFORM(MAC) && !defined(HAVE_SCENEKIT)
 #define HAVE_SCENEKIT !ENABLE_GPU_PROCESS_MODEL
 #endif
 
-#if PLATFORM(COCOA)
+/* DARLING: a value the build sets is kept. */
+#if PLATFORM(COCOA) && !defined(HAVE_WEBGPU_IMPLEMENTATION)
 #define HAVE_WEBGPU_IMPLEMENTATION 1
 // FIXME: PlatformHave.h should not depend or defined ENABLE macros.
+// The WKTextExtractionItem classes, which WebKit implements in Swift.
+#if !defined(HAVE_TEXT_EXTRACTION_ITEM_CLASSES) && PLATFORM(COCOA) && (USE(APPLE_INTERNAL_SDK) || (!PLATFORM(WATCHOS) && !PLATFORM(APPLETV)))
+#define HAVE_TEXT_EXTRACTION_ITEM_CLASSES 1
+#endif
+
 #if !defined(ENABLE_WEBGPU_SWIFT)
 #define ENABLE_WEBGPU_SWIFT 0
 #endif
 #endif
 
-#if PLATFORM(COCOA) && !PLATFORM(WATCHOS)
+/* DARLING: a value the build sets is kept. */
+#if PLATFORM(COCOA) && !PLATFORM(WATCHOS) && !defined(HAVE_SHAPE_DETECTION_API_IMPLEMENTATION)
 #define HAVE_SHAPE_DETECTION_API_IMPLEMENTATION 1
 #endif
 
@@ -980,16 +1034,18 @@
 #define HAVE_UNIFIED_SPEECHSYNTHESIS_FIX_FOR_81465164 1
 #endif
 
-#if PLATFORM(MAC)
+/* DARLING: a value the build sets is kept. */
+#if PLATFORM(MAC) && !defined(HAVE_SCREEN_CAPTURE_KIT)
 #define HAVE_SCREEN_CAPTURE_KIT 1
 #endif
 
-#if (PLATFORM(MAC) && __MAC_OS_X_VERSION_MIN_REQUIRED >= 140000)
+/* DARLING: a value the build sets is kept. */
+#if (PLATFORM(MAC) && __MAC_OS_X_VERSION_MIN_REQUIRED >= 140000) && !defined(HAVE_SC_CONTENT_SHARING_PICKER)
 #define HAVE_SC_CONTENT_SHARING_PICKER 1
 #endif
 
-#if PLATFORM(MAC) || PLATFORM(IOS) || PLATFORM(MACCATALYST) || PLATFORM(VISION) \
-    || PLATFORM(WATCHOS) || PLATFORM(APPLETV)
+#if !defined(HAVE_SANDBOX_STATE_FLAGS) && (PLATFORM(MAC) || PLATFORM(IOS) || PLATFORM(MACCATALYST) || PLATFORM(VISION) \
+    || PLATFORM(WATCHOS) || PLATFORM(APPLETV))
 #define HAVE_SANDBOX_STATE_FLAGS 1
 #endif
 
@@ -1021,7 +1077,7 @@
 #define HAVE_DDRESULT_DISABLE_URL_SCHEME_CHECKING 1
 #endif
 
-#if (PLATFORM(MAC)  || PLATFORM(IOS) || PLATFORM(VISION))
+#if (PLATFORM(MAC)  || PLATFORM(IOS) || PLATFORM(VISION)) && HAVE(LSDATABASECONTEXT)
 #define HAVE_SYSTEM_CONTENT_LS_DATABASE 1
 #endif
 
@@ -1058,7 +1114,7 @@
 #define HAVE_CG_IMAGE_SOURCE_AVIF_IMAGE_TYPES_BUG 1
 #endif
 
-#if PLATFORM(MAC)
+#if !defined(HAVE_POWERLOG_TASK_MODE_QUERY) && PLATFORM(MAC)
 #define HAVE_POWERLOG_TASK_MODE_QUERY 1
 #endif
 
@@ -1071,7 +1127,8 @@
 #define HAVE_LOCKDOWN_MODE_PDF_ADDITIONS 1
 #endif
 
-#if PLATFORM(COCOA)
+/* DARLING: a value the build sets is kept. */
+#if PLATFORM(COCOA) && !defined(HAVE_ACCESSIBILITY_FRAMEWORK)
 #define HAVE_ACCESSIBILITY_FRAMEWORK 1
 #endif
 
@@ -1146,7 +1203,7 @@
 #endif
 
 #if PLATFORM(MAC) || PLATFORM(IOS) || PLATFORM(MACCATALYST) || PLATFORM(VISION)
-#if defined __has_include && __has_include(<CoreFoundation/CFPriv.h>)
+#if WTF_HAVE_APPLE_INTERNAL_SDK
 // FIXME: PlatformHave.h should not depend or defined ENABLE macros.
 #define ENABLE_SYSTEM_CONTENT_PATH_SANDBOX_RULES 1
 #endif

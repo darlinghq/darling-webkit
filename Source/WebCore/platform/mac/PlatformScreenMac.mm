@@ -212,8 +212,13 @@ ScreenProperties collectScreenProperties()
 
 void setShouldOverrideScreenSupportsHighDynamicRange(bool shouldOverride, bool supportsHighDynamicRange)
 {
+#if USE(MEDIATOOLBOX) // DARLING: the override is MediaToolbox's
     if (PAL::isMediaToolboxFrameworkAvailable() && PAL::canLoad_MediaToolbox_MTOverrideShouldPlayHDRVideo())
         PAL::softLink_MediaToolbox_MTOverrideShouldPlayHDRVideo(shouldOverride, supportsHighDynamicRange);
+#else
+    UNUSED_PARAM(shouldOverride);
+    UNUSED_PARAM(supportsHighDynamicRange);
+#endif
 }
 
 uint32_t primaryOpenGLDisplayMask()

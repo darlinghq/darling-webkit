@@ -24,6 +24,10 @@
  */
 
 #include "config.h"
+
+// DARLING: needs CoreMedia and AudioToolbox, which are only soft-linked with
+// AVFoundation (the PAL soft-link headers are guarded the same way).
+#if USE(AVFOUNDATION)
 #include "WebAudioBufferList.h"
 
 #include "CAAudioStreamDescription.h"
@@ -202,3 +206,5 @@ void WebAudioBufferList::zeroFlatBuffer()
 }
 
 }
+
+#endif // USE(AVFOUNDATION)

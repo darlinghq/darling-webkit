@@ -54,7 +54,9 @@ private:
     ContextMenuElementInfoMac(const WebKit::ContextMenuContextData& data, WebKit::WebPageProxy& page)
         : m_hitTestResultData(data.webHitTestResultData().value())
         , m_page(page)
+#if ENABLE(CONTEXT_MENU_QR_CODE_DETECTION) // DARLING: as the context data's payload; empty otherwise
         , m_qrCodePayloadString(data.qrCodePayloadString())
+#endif
         , m_hasEntireImage(data.hasEntireImage())
         , m_allowsFollowingLink(data.allowsFollowingLink())
         , m_allowsFollowingImageURL(data.allowsFollowingImageURL()) { }

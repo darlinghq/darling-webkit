@@ -1953,16 +1953,21 @@ static WebFrameLoadType toWebFrameLoadType(WebCore::FrameLoadType frameLoadType)
 }
 #endif // ENABLE(TEXT_AUTOSIZING)
 
+// DARLING: caption preferences are part of WebCore's video support; without
+// it there are no captions to set preferences for.
 - (void)_createCaptionPreferencesTestingModeToken
 {
+#if ENABLE(VIDEO)
     auto* page = core(self)->page();
     if (!page)
         return;
     _private->captionPreferencesTestingModeToken = page->group().ensureCaptionPreferences().createTestingModeToken().moveToUniquePtr();
+#endif
 }
 
 - (void)_setCaptionDisplayMode:(NSString *)mode
 {
+#if ENABLE(VIDEO)
     auto* page = core(self)->page();
     if (!page)
         return;
@@ -1970,6 +1975,9 @@ static WebFrameLoadType toWebFrameLoadType(WebCore::FrameLoadType frameLoadType)
     auto displayMode = WTF::EnumTraits<WebCore::CaptionUserPreferences::CaptionDisplayMode>::fromString(mode);
     if (displayMode.has_value())
         captionPreferences.setCaptionDisplayMode(displayMode.value());
+#else
+    UNUSED_PARAM(mode);
+#endif
 }
 
 - (void)_replaceSelectionWithFragment:(DOMDocumentFragment *)fragment selectReplacement:(BOOL)selectReplacement smartReplace:(BOOL)smartReplace matchStyle:(BOOL)matchStyle

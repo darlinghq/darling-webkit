@@ -50,8 +50,12 @@ SOFT_LINK_FUNCTION_FOR_HEADER(WebCore, VideoToolbox, VTDecompressionSessionWaitF
 #define VTDecompressionSessionWaitForAsynchronousFrames softLink_VideoToolbox_VTDecompressionSessionWaitForAsynchronousFrames
 SOFT_LINK_FUNCTION_FOR_HEADER(WebCore, VideoToolbox, VTDecompressionSessionDecodeFrameWithOutputHandler, OSStatus, (VTDecompressionSessionRef session, CMSampleBufferRef sampleBuffer, VTDecodeFrameFlags decodeFlags, VTDecodeInfoFlags *infoFlagsOut, VTDecompressionOutputHandler outputHandler), (session, sampleBuffer, decodeFlags, infoFlagsOut, outputHandler))
 #define VTDecompressionSessionDecodeFrameWithOutputHandler softLink_VideoToolbox_VTDecompressionSessionDecodeFrameWithOutputHandler
+// DARLING: only video decompression uses it, and its handler type needs
+// CoreMedia's tagged buffers.
+#if ENABLE(VIDEO)
 SOFT_LINK_FUNCTION_FOR_HEADER(WebCore, VideoToolbox, VTDecompressionSessionDecodeFrameWithMultiImageCapableOutputHandler, OSStatus, (VTDecompressionSessionRef session, CMSampleBufferRef sampleBuffer, VTDecodeFrameFlags decodeFlags, VTDecodeInfoFlags *infoFlagsOut, VTDecompressionMultiImageCapableOutputHandler multiImageCapableOutputHandler), (session, sampleBuffer, decodeFlags, infoFlagsOut, multiImageCapableOutputHandler))
 #define VTDecompressionSessionDecodeFrameWithMultiImageCapableOutputHandler softLink_VideoToolbox_VTDecompressionSessionDecodeFrameWithMultiImageCapableOutputHandler
+#endif
 SOFT_LINK_FUNCTION_FOR_HEADER(WebCore, VideoToolbox, VTDecompressionSessionDecodeFrame, OSStatus, (VTDecompressionSessionRef session, CMSampleBufferRef sampleBuffer, VTDecodeFrameFlags decodeFlags, void* sourceFrameRefCon, VTDecodeInfoFlags* infoFlagsOut), (session, sampleBuffer, decodeFlags, sourceFrameRefCon, infoFlagsOut))
 #define VTDecompressionSessionDecodeFrame softLink_VideoToolbox_VTDecompressionSessionDecodeFrame
 SOFT_LINK_FUNCTION_FOR_HEADER(WebCore, VideoToolbox, VTImageRotationSessionCreate, OSStatus, (CFAllocatorRef allocator, uint32_t rotationDegrees, CF_RETURNS_RETAINED VTImageRotationSessionRef* imageRotationSessionOut), (allocator, rotationDegrees, imageRotationSessionOut))

@@ -39,7 +39,9 @@ DECLARE_SYSTEM_HEADER
 
 #if USE(APPLE_INTERNAL_SDK)
 #import <sandbox/private.h>
-#else
+#elif !defined(SANDBOX_NAMED_EXTERNAL)
+// DARLING: only when <sandbox.h> lacks its private part. Darling's has it
+// (SANDBOX_NAMED_EXTERNAL is one of its definitions), with these filter types.
 enum sandbox_filter_type {
     SANDBOX_FILTER_NONE,
     SANDBOX_FILTER_PATH,

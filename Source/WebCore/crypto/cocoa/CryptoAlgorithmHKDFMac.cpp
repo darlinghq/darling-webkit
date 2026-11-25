@@ -47,10 +47,11 @@ static ExceptionOr<Vector<uint8_t>> platformDeriveBitsCryptoKit(const CryptoAlgo
         return Exception { ExceptionCode::OperationError };
     return WTF::move(rv.result);
 #else
-    UNUSED_PARAM(parameters);
-    UNUSED_PARAM(key);
-    UNUSED_PARAM(length);
-    RELEASE_ASSERT_NOT_REACHED_WITH_MESSAGE("CLANG_WEBKIT_BRANCH");
+    // DARLING: without Swift, HKDF is computed by CommonCrypto.
+    CCDigestAlgorithm digest;
+    if (!getCommonCryptoDigestAlgorithm(parameters.hashIdentifier, digest))
+        return Exception { ExceptionCode::OperationError };
+    return deriveHDKFBits(digest, key.key().span(), parameters.saltVector().span(), parameters.infoVector().span(), length);
 #endif
 }
 

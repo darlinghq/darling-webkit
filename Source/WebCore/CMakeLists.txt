@@ -2170,7 +2170,7 @@ if (USE_ANGLE_EGL)
     )
 elseif (USE_LIBEPOXY)
     list(APPEND WebCore_LIBRARIES Epoxy::Epoxy)
-else ()
+elseif (NOT APPLE) # DARLING: Apple's OpenGL is the framework PlatformMac.cmake links
     list(APPEND WebCore_LIBRARIES OpenGL::GLES)
 
     list(APPEND WebCore_SYSTEM_INCLUDE_DIRECTORIES
@@ -2813,7 +2813,7 @@ add_custom_command(
     DEPENDS ${WebCore_CSS_PROPERTY_NAMES}
     WORKING_DIRECTORY ${WebCore_DERIVED_SOURCES_DIR}
     COMMAND ${PERL_EXECUTABLE} -ne "print" ${WebCore_CSS_PROPERTY_NAMES} > ${WebCore_DERIVED_SOURCES_DIR}/CSSProperties.json
-    COMMAND ${PYTHON_EXECUTABLE} ${WEBCORE_DIR}/css/scripts/process-css-properties.py --defines "${FEATURE_DEFINES_WITH_SPACE_SEPARATOR}" --gperf-executable "${GPERF_EXECUTABLE}"
+    COMMAND ${PYTHON_EXECUTABLE} ${WEBCORE_DIR}/css/scripts/process-css-properties.py --defines "${FEATURE_DEFINES_WITH_SPACE_SEPARATOR} ${CSS_VALUE_PLATFORM_DEFINES}" --gperf-executable "${GPERF_EXECUTABLE}"
     VERBATIM)
 list(APPEND WebCore_SOURCES ${WebCore_DERIVED_SOURCES_DIR}/CSSPropertyNames.cpp)
 list(APPEND WebCore_SOURCES ${WebCore_DERIVED_SOURCES_DIR}/CSSPropertyParsing.cpp)
@@ -3064,6 +3064,12 @@ GENERATE_DOM_NAME_ENUM(Namespace)
 list(APPEND WebCore_SOURCES ${WebCore_DERIVED_SOURCES_DIR}/Namespace.cpp)
 
 WEBKIT_COMPUTE_SOURCES(WebCore)
+if (DARLING)
+    # DARLING: Swift is not built (the Mac port has no Swift toolchain here);
+    # SourcesCocoa.txt lists the USD model loader, which Apple's source
+    # release does not include.
+    list(FILTER WebCore_SOURCES EXCLUDE REGEX "\\.swift$")
+endif ()
 
 target_precompile_headers(WebCore PRIVATE WebCorePrefix.h)
 
@@ -3130,7 +3136,11 @@ list(APPEND WebCoreTestSupport_SYSTEM_INCLUDE_DIRECTORIES ${WebCore_SYSTEM_INCLU
 
 WEBKIT_LIBRARY(WebCoreTestSupport)
 
-if (${WebCore_LIBRARY_TYPE} MATCHES "SHARED")
+# DARLING: not for the Mac port, which builds WebCore as a framework: like
+# WebKit there, it has no library version, and with the empty PROJECT_VERSION
+# of that port the VERSION property would become "SOVERSION", which CMake then
+# takes for the framework's version directory instead of A.
+if (${WebCore_LIBRARY_TYPE} MATCHES "SHARED" AND NOT "${PORT}" STREQUAL "Mac")
     set_target_properties(WebCore PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION ${PROJECT_VERSION_MAJOR})
     install(TARGETS WebCore DESTINATION "${LIB_INSTALL_DIR}")
 endif ()

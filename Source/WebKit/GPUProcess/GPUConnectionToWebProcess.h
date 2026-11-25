@@ -28,6 +28,9 @@
 #if ENABLE(GPU_PROCESS)
 
 #include "Connection.h"
+#if HAVE(AUDIT_TOKEN)
+#include "CoreIPCAuditToken.h"
+#endif
 #include "GPUConnectionToWebProcessMessages.h"
 #include "MessageReceiverMap.h"
 #include "RemoteAudioHardwareListenerIdentifier.h"

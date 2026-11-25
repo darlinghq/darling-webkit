@@ -24,6 +24,9 @@
  */
 
 #import "config.h"
+
+// DARLING: needs CoreMedia and VideoToolbox, whose soft links come with AVFoundation
+#if USE(AVFOUNDATION)
 #import "CMUtilities.h"
 
 #if PLATFORM(COCOA)
@@ -883,3 +886,5 @@ FourCC computeBoxType(FourCC codecType)
 } // namespace WebCore
 
 #endif // PLATFORM(COCOA)
+
+#endif // USE(AVFOUNDATION)

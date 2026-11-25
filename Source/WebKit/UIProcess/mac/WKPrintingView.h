@@ -58,8 +58,13 @@ class WebFrameProxy;
     HashMap<WebCore::IntRect, RefPtr<WebCore::ShareableBitmap>> _pagePreviews;
 
     Vector<uint8_t> _printedPagesData;
+#if HAVE(PDFKIT)
     RetainPtr<PDFDocument> _printedPagesPDFDocument;
     Vector<Vector<RetainPtr<PDFDestination>>> _linkDestinationsPerPage;
+#else
+    // DARLING: without PDFKit the printed pages are drawn with CoreGraphics.
+    RetainPtr<CGPDFDocumentRef> _printedPagesPDFDocument;
+#endif
 
     Markable<IPC::Connection::AsyncReplyID> _expectedComputedPagesCallback;
     HashMap<IPC::Connection::AsyncReplyID, WebCore::IntRect> _expectedPreviewCallbacks;

@@ -1471,6 +1471,8 @@ void GraphicsLayerCA::removeModelContents()
 
 void GraphicsLayerCA::setContentsToVideoElement(HTMLVideoElement& videoElement, ContentsLayerPurpose purpose)
 {
+    // DARLING: HTMLVideoElement is only defined when video is enabled.
+#if ENABLE(VIDEO)
 #if HAVE(AVKIT)
     if (auto hostingContextID = videoElement.layerHostingContext().contextID) {
         if (m_contentsLayer && !m_contentsDisplayDelegate
@@ -1490,6 +1492,10 @@ void GraphicsLayerCA::setContentsToVideoElement(HTMLVideoElement& videoElement, 
     }
 #endif
     SUPPRESS_FORWARD_DECL_ARG setContentsToPlatformLayer(videoElement.platformLayer(), purpose);
+#else
+    UNUSED_PARAM(videoElement);
+    UNUSED_PARAM(purpose);
+#endif
 }
 
 void GraphicsLayerCA::setContentsDisplayDelegate(RefPtr<GraphicsLayerContentsDisplayDelegate>&& delegate, ContentsLayerPurpose purpose)

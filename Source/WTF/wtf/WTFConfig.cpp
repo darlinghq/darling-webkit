@@ -137,7 +137,13 @@ void setPermissionsOfConfigPage()
 #if PLATFORM(COCOA)
     static std::once_flag onceFlag;
     std::call_once(onceFlag, [] {
+#if USE(SYSTEM_MALLOC)
+        // DARLING: without bmalloc there is no Gigacage config, only the
+        // slots reserved for system allocators.
+        constexpr size_t preWTFConfigSize = Gigacage::reservedBytesForGigacageConfig;
+#else
         constexpr size_t preWTFConfigSize = Gigacage::startOffsetOfGigacageConfig + Gigacage::reservedBytesForGigacageConfig;
+#endif
 
         // We may have potentially initialized some of g_config, namely the
         // gigacage config, prior to reaching this function. We need to

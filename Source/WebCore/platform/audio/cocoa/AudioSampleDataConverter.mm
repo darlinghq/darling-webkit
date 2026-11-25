@@ -24,6 +24,10 @@
  */
 
 #import "config.h"
+
+// DARLING: needs CoreMedia and AudioToolbox, which are only soft-linked with
+// AVFoundation (the PAL soft-link headers are guarded the same way).
+#if USE(AVFOUNDATION)
 #import "AudioSampleDataConverter.h"
 
 #import "AudioSampleBufferList.h"
@@ -143,3 +147,5 @@ AudioSampleDataConverter::Converter::~Converter()
 }
 
 } // namespace WebCore
+
+#endif // USE(AVFOUNDATION)

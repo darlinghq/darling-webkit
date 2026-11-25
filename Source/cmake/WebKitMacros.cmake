@@ -52,6 +52,11 @@ macro(WEBKIT_COMPUTE_SOURCES _framework)
             else ()
                 list(APPEND ${_framework}_SOURCES ${_file})
             endif ()
+            # DARLING: the bundles of the sources that the lists do not mark
+            # @nonARC are compiled with ARC, as the Xcode build compiles them.
+            if (DARLING AND _file MATCHES "-ARC\\.mm$")
+                set_source_files_properties(${_file} PROPERTIES COMPILE_OPTIONS -fobjc-arc)
+            endif ()
         endforeach ()
 
         unset(_resultTmp)
@@ -308,7 +313,7 @@ macro(_WEBKIT_TARGET_LINK_FRAMEWORK _target)
         get_property(_linked_into GLOBAL PROPERTY ${framework}_LINKED_INTO)
 
         # See if the target is linking a framework that the specified framework is already linked into
-        if ((NOT _linked_into) OR (${framework} STREQUAL ${_linked_into}) OR (NOT ${_linked_into} IN_LIST ${_target}_FRAMEWORKS))
+        if ((NOT _linked_into) OR ("${framework}" STREQUAL "${_linked_into}") OR (NOT "${_linked_into}" IN_LIST ${_target}_FRAMEWORKS))
             list(APPEND ${_target}_PRIVATE_LIBRARIES WebKit::${framework})
 
             # The WebKit:: alias targets do not propagate OBJECT libraries so the

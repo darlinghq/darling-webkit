@@ -1,0 +1,65 @@
+# The toolchain of one slice of Darling's WebKit build, generated from
+# darling/toolchain.cmake.in. It cross-compiles for macOS with the host's
+# clang against Darling's SDK and libc++, and links with Darling's ld64
+# against the libraries Darling built (the link root, see link-root.py).
+set(CMAKE_SYSTEM_NAME Darwin)
+set(CMAKE_SYSTEM_PROCESSOR @arch@)
+set(CMAKE_SYSTEM_VERSION @DARLING_WEBKIT_DARWIN_VERSION@)
+
+set(CMAKE_OSX_SYSROOT "@DARLING_SDK@")
+set(CMAKE_OSX_ARCHITECTURES @arch@)
+set(CMAKE_OSX_DEPLOYMENT_TARGET @DARLING_WEBKIT_DEPLOYMENT_TARGET@)
+
+foreach (lang C CXX OBJC OBJCXX ASM)
+    set(CMAKE_${lang}_COMPILER_TARGET @arch@-apple-macos@DARLING_WEBKIT_DEPLOYMENT_TARGET@)
+endforeach ()
+set(CMAKE_C_COMPILER "@CMAKE_C_COMPILER@")
+set(CMAKE_CXX_COMPILER "@CMAKE_CXX_COMPILER@")
+set(CMAKE_OBJC_COMPILER "@CMAKE_C_COMPILER@")
+set(CMAKE_OBJCXX_COMPILER "@CMAKE_CXX_COMPILER@")
+set(CMAKE_ASM_COMPILER "@CMAKE_C_COMPILER@")
+
+set(CMAKE_AR "@DARLING_CCTOOLS@/ar/@APPLE_TARGET_TRIPLET_PRIMARY@-ar")
+set(CMAKE_RANLIB "@DARLING_CCTOOLS@/ar/@APPLE_TARGET_TRIPLET_PRIMARY@-ranlib")
+set(CMAKE_INSTALL_NAME_TOOL "@DARLING_CCTOOLS@/misc/@APPLE_TARGET_TRIPLET_PRIMARY@-install_name_tool")
+set(CMAKE_LIPO "@DARLING_CCTOOLS@/misc/lipo")
+
+# The SDK's umbrella frameworks keep their subframeworks in Frameworks/;
+# Xcode searches those for headers, so this build does too.
+set(_darling_frameworks "")
+file(GLOB _darling_umbrellas "${CMAKE_OSX_SYSROOT}/System/Library/Frameworks/*.framework/Frameworks")
+foreach (_umbrella IN LISTS _darling_umbrellas)
+    string(APPEND _darling_frameworks " -iframework ${_umbrella}")
+endforeach ()
+
+set(_darling_cxx "-nostdinc++ -isystem @DARLING_LIBCXX_INCLUDE@ -isystem @DARLING_LIBCXXABI_INCLUDE@")
+set(_darling_slice "@DARLING_WEBKIT_ARCH_FLAGS@")
+foreach (lang C OBJC ASM)
+    set(CMAKE_${lang}_FLAGS_INIT "${_darling_slice} ${_darling_frameworks}")
+endforeach ()
+set(CMAKE_CXX_FLAGS_INIT "${_darling_slice} ${_darling_cxx} ${_darling_frameworks}")
+set(CMAKE_OBJCXX_FLAGS_INIT "${_darling_slice} ${_darling_cxx} ${_darling_frameworks}")
+
+# clang gives the linker the last -isysroot as its library root (-syslibroot);
+# CMake puts the SDK's before these flags. Linking against the SDK instead
+# would find its stub libraries, which have no arm64 slice.
+# ld64 looks in the root's /System/Library/Frameworks by itself; private
+# frameworks (CoreUI, ...) need their directory named, which it also looks up
+# under the root.
+set(_darling_link "-fuse-ld=@DARLING_LD64@ -isysroot @DARLING_LINK_ROOT@ -nostdlib++ -lc++ -F/System/Library/PrivateFrameworks")
+set(CMAKE_EXE_LINKER_FLAGS_INIT "${_darling_link}")
+# the frameworks' current and compatibility versions
+set(CMAKE_SHARED_LINKER_FLAGS_INIT "${_darling_link} @DARLING_WEBKIT_VERSION_FLAGS@")
+set(CMAKE_MODULE_LINKER_FLAGS_INIT "${_darling_link}")
+# CMake 4 links FRAMEWORK targets with these instead of the shared library
+# flags (and has no _INIT form of them); earlier versions ignore it.
+set(CMAKE_MACOSX_FRAMEWORK_LINKER_FLAGS "${_darling_link} @DARLING_WEBKIT_VERSION_FLAGS@")
+
+# Headers come from the SDK, libraries and frameworks from the link root;
+# programs (ruby, perl, gperf, ...) from the host.
+set(CMAKE_FIND_ROOT_PATH "${CMAKE_OSX_SYSROOT}" "@DARLING_LINK_ROOT@")
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+set(CMAKE_FIND_FRAMEWORK FIRST)

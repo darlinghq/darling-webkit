@@ -33,6 +33,8 @@
 #define VM_TAG_FOR_WEBASSEMBLY_MEMORY -1
 #define VM_TAG_FOR_EXECUTABLEALLOCATOR_MEMORY -1
 #define VM_TAG_FOR_ISOHEAP_MEMORY -1
+// DARLING: OSAllocator uses it with the system allocator too.
+#define VM_TAG_FOR_STRUCTUREALLOCATOR_MEMORY -1
 
 #else
 

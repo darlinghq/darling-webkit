@@ -24,6 +24,10 @@
  */
 
 #import "config.h"
+
+// DARLING: only with AVFoundation, like the code that uses it.
+#if USE(AVFOUNDATION)
+
 #import "MediaSampleAVFObjC.h"
 
 #import "CMUtilities.h"
@@ -413,3 +417,5 @@ Vector<Ref<MediaSampleAVFObjC>> MediaSampleAVFObjC::divideIntoHomogeneousSamples
 }
 
 }
+
+#endif // USE(AVFOUNDATION)

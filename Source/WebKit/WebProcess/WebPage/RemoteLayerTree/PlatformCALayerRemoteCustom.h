@@ -65,7 +65,9 @@ public:
 private:
     PlatformCALayerRemoteCustom(WebCore::PlatformCALayer::LayerType, PlatformLayer *, WebCore::PlatformCALayerClient* owner, RemoteLayerTreeContext&);
     PlatformCALayerRemoteCustom(WebCore::PlatformCALayer::LayerType, LayerHostingContextID, WebCore::PlatformCALayerClient* owner, RemoteLayerTreeContext&);
+#if HAVE(AVKIT) // DARLING: as create() for a video element, its only caller
     PlatformCALayerRemoteCustom(WebCore::HTMLVideoElement&, WebCore::PlatformCALayerClient* owner, RemoteLayerTreeContext&);
+#endif
 #if ENABLE(MODEL_PROCESS)
     PlatformCALayerRemoteCustom(WebCore::PlatformCALayer::LayerType, Ref<WebCore::ModelContext>, WebCore::PlatformCALayerClient* owner, RemoteLayerTreeContext&);
 #endif

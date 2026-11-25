@@ -272,6 +272,8 @@ void addTypesFromClass(NSMutableDictionary *allTypes, Class objCClass, NSArray *
 
         // Since this is a "secret default" we don't both registering it.
         BOOL omitPDFSupport = [[NSUserDefaults standardUserDefaults] boolForKey:@"WebKitOmitPDFSupport"];
+        // DARLING: without PDFKit there is no PDF view to show PDF documents with.
+#if PLATFORM(IOS_FAMILY) || HAVE(PDFKIT)
         if (!omitPDFSupport) {
 #if PLATFORM(IOS_FAMILY)
 #define WebPDFRepresentation ([WebView _getPDFRepresentationClass])
@@ -281,6 +283,9 @@ void addTypesFromClass(NSMutableDictionary *allTypes, Class objCClass, NSArray *
 #undef WebPDFRepresentation
 #endif
         }
+#else
+        UNUSED_VARIABLE(omitPDFSupport);
+#endif
         return types;
     }();
     static BOOL addedImageTypes = NO;

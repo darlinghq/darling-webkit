@@ -266,9 +266,12 @@ void WebContextMenuProxyMac::handleContextMenuWritingTools(WebCore::WritingTools
 
 void WebContextMenuProxyMac::handleShareMenuItem()
 {
+    // DARLING: the share item is made only with the service controls
+#if ENABLE(SERVICE_CONTROLS)
     RetainPtr shareMenuItem = createShareMenuItem(ShareMenuItemType::Popover);
     [shareMenuItem setMenu:m_menu.get()];
     [[NSApplication sharedApplication] sendAction:[shareMenuItem action] to:retainPtr([shareMenuItem target]).get() from:shareMenuItem.get()];
+#endif
 }
 
 #if ENABLE(SERVICE_CONTROLS)
@@ -949,12 +952,14 @@ void WebContextMenuProxyMac::getContextMenuItem(const WebContextMenuItemData& it
         updateMenuItemImage(menuItem.get(), item.action(), item.title());
 #endif
 
+#if ENABLE(VIDEO) // DARLING: the caption style menu is for media elements
         if (item.action() == ContextMenuItemCaptionDisplayStyleSubmenu) {
             RetainPtr controller = captionStyleMenuController();
             [menuItem setSubmenu:[controller captionStyleMenu]];
             completionHandler(menuItem.get());
             return;
         }
+#endif
 
         getContextMenuFromItems(item.submenu(), [menuItem = WTF::move(menuItem), completionHandler = WTF::move(completionHandler)](NSMenu *menu) mutable {
             [menuItem setSubmenu:menu];
@@ -1086,6 +1091,7 @@ RetainPtr<NSArray> WebContextMenuProxyMac::platformData() const
     return result;
 }
 
+#if ENABLE(VIDEO) // DARLING: as in the header
 WKCaptionStyleMenuController *WebContextMenuProxyMac::captionStyleMenuController()
 {
     if (!m_captionStyleMenuController) {
@@ -1094,6 +1100,7 @@ WKCaptionStyleMenuController *WebContextMenuProxyMac::captionStyleMenuController
     }
     return m_captionStyleMenuController.get();
 }
+#endif
 
 WKMenuDelegate *WebContextMenuProxyMac::menuDelegate()
 {
@@ -1111,20 +1118,26 @@ void WebContextMenuProxyMac::didDismissContextMenu(NSMenu *menu)
 {
     protectedPage()->didDismissContextMenu();
 
+#if ENABLE(VIDEO) // DARLING: as in the header
     if (m_captionStyleMenuController && [m_captionStyleMenuController hasAncestor:menu])
         captionStyleMenuDidClose();
+#endif
 }
 
 void WebContextMenuProxyMac::captionStyleMenuWillOpen()
 {
+#if ENABLE(VIDEO) // DARLING: the caption style menu is for media elements
     if (auto identifier = m_context.mediaElementIdentifier())
         protectedPage()->showCaptionDisplaySettingsPreview(m_frameInfo, *identifier);
+#endif
 }
 
 void WebContextMenuProxyMac::captionStyleMenuDidClose()
 {
+#if ENABLE(VIDEO) // DARLING: the caption style menu is for media elements
     if (auto identifier = m_context.mediaElementIdentifier())
         protectedPage()->hideCaptionDisplaySettingsPreview(m_frameInfo, *identifier);
+#endif
 }
 
 } // namespace WebKit

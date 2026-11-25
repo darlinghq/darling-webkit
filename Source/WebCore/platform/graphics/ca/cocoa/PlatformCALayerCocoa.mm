@@ -208,8 +208,10 @@ static NSString *toCAFilterType(PlatformCALayer::FilterType type)
 
 PlatformCALayer::LayerType PlatformCALayerCocoa::layerTypeForPlatformLayer(PlatformLayer* layer)
 {
+#if USE(AVFOUNDATION) // DARLING: AVPlayerLayer comes from AVFoundation
     if (PAL::isAVFoundationFrameworkAvailable() && [layer isKindOfClass:PAL::getAVPlayerLayerClassSingleton()])
         return LayerType::LayerTypeAVPlayerLayer;
+#endif
 
     if ([layer isKindOfClass:WebVideoContainerLayer.class]
         && [(WebVideoContainerLayer*)layer playerLayer])
@@ -259,8 +261,10 @@ PlatformCALayerCocoa::PlatformCALayerCocoa(LayerType layerType, PlatformCALayerC
         layerClass = [WebTiledBackingLayer class];
         break;
     case LayerType::LayerTypeAVPlayerLayer:
+#if USE(AVFOUNDATION) // DARLING: AVPlayerLayer comes from AVFoundation
         if (PAL::isAVFoundationFrameworkAvailable())
             layerClass = PAL::getAVPlayerLayerClassSingleton();
+#endif
         break;
 #if ENABLE(MODEL_ELEMENT)
     case LayerType::LayerTypeModelLayer:
@@ -1032,19 +1036,27 @@ void PlatformCALayerCocoa::setAntialiasesEdges(bool antialiases)
 
 MediaPlayerVideoGravity PlatformCALayerCocoa::videoGravity() const
 {
+    // DARLING: only with AVFoundation, like the other AVPlayerLayer uses.
+#if USE(AVFOUNDATION)
     BEGIN_BLOCK_OBJC_EXCEPTIONS
     if ([m_layer respondsToSelector:@selector(videoGravity)])
         return convertAVLayerToMediaPlayerVideoGravity([(AVPlayerLayer *)m_layer videoGravity]);
     END_BLOCK_OBJC_EXCEPTIONS
+#endif
     return MediaPlayerVideoGravity::ResizeAspect;
 }
 
 void PlatformCALayerCocoa::setVideoGravity(MediaPlayerVideoGravity gravity)
 {
+    // DARLING: only with AVFoundation, like the other AVPlayerLayer uses.
+#if USE(AVFOUNDATION)
     BEGIN_BLOCK_OBJC_EXCEPTIONS
     if ([m_layer respondsToSelector:@selector(setVideoGravity:)])
         [(AVPlayerLayer *)m_layer setVideoGravity:convertMediaPlayerToAVLayerVideoGravity(gravity).get()];
     END_BLOCK_OBJC_EXCEPTIONS
+#else
+    UNUSED_PARAM(gravity);
+#endif
 }
 
 FloatRoundedRect PlatformCALayerCocoa::shapeRoundedRect() const
@@ -1380,6 +1392,9 @@ unsigned PlatformCALayerCocoa::backingStoreBytesPerPixel() const
 
 AVPlayerLayer *PlatformCALayerCocoa::avPlayerLayer() const
 {
+#if !USE(AVFOUNDATION) // DARLING: AVPlayerLayer comes from AVFoundation
+    return nil;
+#else
     if (!PAL::isAVFoundationFrameworkAvailable())
         return nil;
 
@@ -1394,6 +1409,7 @@ AVPlayerLayer *PlatformCALayerCocoa::avPlayerLayer() const
 
     ASSERT_NOT_REACHED();
     return nil;
+#endif
 }
 
 } // namespace WebCore

@@ -46,7 +46,9 @@ struct Item;
 namespace WebKit {
 
 using RootViewToWebViewConverter = Function<WebCore::FloatRect(const WebCore::FloatRect&)>;
+#if HAVE(TEXT_EXTRACTION_ITEM_CLASSES)
 RetainPtr<WKTextExtractionItem> createItem(const WebCore::TextExtraction::Item&, RootViewToWebViewConverter&&);
+#endif
 
 std::optional<double> computeSimilarity(NSString *a, NSString *b, unsigned minimumLength = 1);
 

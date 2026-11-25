@@ -58,12 +58,8 @@ static ExceptionOr<Vector<uint8_t>> encryptCryptoKitAESGCM(const Vector<uint8_t>
         return Exception { ExceptionCode::OperationError };
     return WTF::move(rv.result);
 #else
-    UNUSED_PARAM(iv);
-    UNUSED_PARAM(key);
-    UNUSED_PARAM(plainText);
-    UNUSED_PARAM(additionalData);
-    UNUSED_PARAM(desiredTagLengthInBytes);
-    RELEASE_ASSERT_NOT_REACHED_WITH_MESSAGE("CLANG_WEBKIT_BRANCH");
+    // DARLING: without Swift, CommonCrypto encrypts every IV length.
+    return encryptAESGCM(iv, key, plainText, additionalData, desiredTagLengthInBytes);
 #endif
 }
 

@@ -810,6 +810,8 @@ void WebProcess::updateIsBroadcastChannelEnabled()
 #if USE(AUDIO_SESSION)
 void WebProcess::remoteAudioSessionConfigurationChanged(const RemoteAudioSessionConfiguration& configuration)
 {
+    // DARLING: the message exists only with media elements or Web Audio, which make the media sessions
+#if ENABLE(VIDEO) || ENABLE(WEB_AUDIO)
     for (auto& page : m_pageMap.values()) {
         RefPtr manager = page->mediaSessionManagerIfExists();
         if (!manager)
@@ -817,6 +819,9 @@ void WebProcess::remoteAudioSessionConfigurationChanged(const RemoteAudioSession
 
         send(Messages::RemoteMediaSessionManagerProxy::RemoteAudioConfigurationChanged(configuration), page->identifier().toUInt64());
     }
+#else
+    UNUSED_PARAM(configuration);
+#endif
 }
 #endif
 

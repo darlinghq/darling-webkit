@@ -208,10 +208,13 @@ private:
 
     void registerInsertionUndoGrouping() override;
 
+    // DARLING: as in PageClient, which declares them only with the PDF HUD
+#if ENABLE(PDF_HUD)
     void createPDFHUD(PDFPluginIdentifier, WebCore::FrameIdentifier, const WebCore::IntRect&) override;
     void updatePDFHUDLocation(PDFPluginIdentifier, const WebCore::IntRect&) override;
     void removePDFHUD(PDFPluginIdentifier) override;
     void removeAllPDFHUDs() override;
+#endif
 
 #if ENABLE(FULLSCREEN_API)
     WebFullScreenManagerProxyClient& fullScreenManagerProxyClient() final;
@@ -270,8 +273,10 @@ private:
     bool useFormSemanticContext() const override;
 
     bool isTextRecognitionInFullscreenVideoEnabled() const final { return true; }
+#if ENABLE(VIDEO) // DARLING: as in PageClient.h
     void beginTextRecognitionForVideoInElementFullscreen(WebCore::ShareableBitmap::Handle&&, WebCore::FloatRect) final;
     void cancelTextRecognitionForVideoInElementFullscreen() final;
+#endif
 
 #if ENABLE(DRAG_SUPPORT)
     void didPerformDragOperation(bool handled) final;

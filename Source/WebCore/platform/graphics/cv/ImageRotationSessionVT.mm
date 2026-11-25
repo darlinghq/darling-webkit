@@ -24,6 +24,9 @@
  */
 
 #import "config.h"
+
+// DARLING: needs CoreMedia and VideoToolbox, whose soft links come with AVFoundation
+#if USE(AVFOUNDATION)
 #import "ImageRotationSessionVT.h"
 
 #import "AffineTransform.h"
@@ -166,3 +169,5 @@ RefPtr<VideoFrame> ImageRotationSessionVT::applyRotation(VideoFrame& videoFrame,
 }
 
 }
+
+#endif // USE(AVFOUNDATION)

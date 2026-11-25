@@ -26,7 +26,7 @@
 #include "config.h"
 #include "MediaEngineConfigurationFactoryCocoa.h"
 
-#if PLATFORM(COCOA)
+#if PLATFORM(COCOA) && ENABLE(VIDEO) // DARLING: it asks MediaPlayer
 
 #include "AV1Utilities.h"
 #include "AV1UtilitiesCocoa.h"

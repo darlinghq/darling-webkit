@@ -24,6 +24,9 @@
  */
 
 #include "config.h"
+
+// DARLING: needs CoreMedia and VideoToolbox, whose soft links come with AVFoundation
+#if USE(AVFOUNDATION)
 #include "FormatDescriptionUtilities.h"
 
 #include "AV1Utilities.h"
@@ -646,3 +649,5 @@ RetainPtr<CFDictionaryRef> formatDescriptionDictionaryFromImmersiveVideoMetadata
 #endif
 
 } // namespace WebCore
+
+#endif // USE(AVFOUNDATION)

@@ -215,7 +215,9 @@ static void makeResponderFirstResponderIfDescendantOfView(NSWindow *window, NSRe
 }
 
 @implementation WKFullScreenWindowController {
+#if ENABLE(VIDEO_PRESENTATION_MODE) // DARLING: picture in picture is for video
     RefPtr<WebKit::VideoPresentationManagerProxy::VideoInPictureInPictureDidChangeObserver> _pipObserver;
+#endif
 
 #if !RELEASE_LOG_DISABLED
     RefPtr<Logger> _logger;
@@ -829,11 +831,14 @@ static RetainPtr<CGImageRef> takeWindowSnapshot(CGSWindowID windowID, bool captu
 
 - (void)clearVideoPresentationManagerObserver
 {
+#if ENABLE(VIDEO_PRESENTATION_MODE) // DARLING: picture in picture is for video
     _pipObserver = nullptr;
+#endif
 }
 
 - (void)setVideoPresentationManagerObserver
 {
+#if ENABLE(VIDEO_PRESENTATION_MODE) // DARLING: picture in picture is for video
     RefPtr<WebKit::VideoPresentationManagerProxy> videoPresentationManager = self._videoPresentationManager;
     if (!videoPresentationManager)
         return;
@@ -850,6 +855,7 @@ static RetainPtr<CGImageRef> takeWindowSnapshot(CGSWindowID windowID, bool captu
     });
 
     videoPresentationManager->addVideoInPictureInPictureDidChangeObserver(Ref { *_pipObserver });
+#endif
 }
 
 - (void)didEnterPictureInPicture
@@ -932,11 +938,13 @@ static RetainPtr<CGImageRef> takeWindowSnapshot(CGSWindowID windowID, bool captu
     return page ? page->fullScreenManager() : nullptr;
 }
 
+#if ENABLE(VIDEO_PRESENTATION_MODE) // DARLING: picture in picture is for video
 - (WebKit::VideoPresentationManagerProxy*)_videoPresentationManager
 {
     RefPtr page = _page.get();
     return page ? page->videoPresentationManager() : nullptr;
 }
+#endif
 
 - (void)_replaceView:(NSView *)view with:(NSView *)otherView
 {

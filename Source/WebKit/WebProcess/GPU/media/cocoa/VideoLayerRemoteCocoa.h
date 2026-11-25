@@ -23,7 +23,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if ENABLE(GPU_PROCESS) && PLATFORM(COCOA)
+#if ENABLE(GPU_PROCESS) && PLATFORM(COCOA) && ENABLE(VIDEO) // DARLING: the media player classes exist only with video
 
 #include <QuartzCore/CALayer.h>
 #include <WebCore/FloatSize.h>

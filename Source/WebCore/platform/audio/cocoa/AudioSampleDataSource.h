@@ -25,6 +25,12 @@
 
 #pragma once
 
+#include <wtf/Platform.h>
+
+// DARLING: needs CoreMedia and AudioToolbox, which are only soft-linked with
+// AVFoundation (the PAL soft-link headers are guarded the same way).
+#if USE(AVFOUNDATION)
+
 #include <CoreAudio/CoreAudioTypes.h>
 #include <WebCore/AudioSampleDataConverter.h>
 #include <WebCore/CAAudioStreamDescription.h>
@@ -136,3 +142,5 @@ private:
 };
 
 } // namespace WebCore
+
+#endif // USE(AVFOUNDATION)

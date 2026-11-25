@@ -24,6 +24,9 @@
  */
 
 #import "config.h"
+
+// DARLING: needs CoreMedia and VideoToolbox, whose soft links come with AVFoundation
+#if USE(AVFOUNDATION)
 #import "AudioVideoRendererAVFObjC.h"
 
 #import "AudioMediaStreamTrackRenderer.h"
@@ -1935,3 +1938,5 @@ String AudioVideoRendererAVFObjC::toString(SeekState state) const
 }
 
 } // namespace WebCore
+
+#endif // USE(AVFOUNDATION)

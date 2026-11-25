@@ -24,6 +24,10 @@
  */
 
 #import "config.h"
+
+// DARLING: only with AVFoundation, like the code that uses it.
+#if USE(AVFOUNDATION)
+
 #import "EffectiveRateChangedListener.h"
 
 #import <AVFoundation/AVFoundation.h>
@@ -96,3 +100,5 @@ void EffectiveRateChangedListener::stop()
 }
 
 } // namespace WebCore
+
+#endif // USE(AVFOUNDATION)

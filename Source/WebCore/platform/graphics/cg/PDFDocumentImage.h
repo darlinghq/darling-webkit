@@ -34,7 +34,8 @@
 
 #if USE(CG)
 
-#if PLATFORM(MAC)
+/* DARLING: a value the build sets is kept. */
+#if PLATFORM(MAC) && !defined(USE_PDFKIT_FOR_PDFDOCUMENTIMAGE)
 #define USE_PDFKIT_FOR_PDFDOCUMENTIMAGE 1
 #endif
 

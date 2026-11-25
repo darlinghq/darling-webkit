@@ -25,7 +25,7 @@
 
 #pragma once
 
-#if ENABLE(GPU_PROCESS)
+#if ENABLE(GPU_PROCESS) && ENABLE(VIDEO) // DARLING: used only by the media players, which need video
 
 #include <WebCore/ContentType.h>
 #include <WebCore/FourCC.h>

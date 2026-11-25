@@ -280,12 +280,17 @@ static WebCore::FloatSize toRawPlatformDelta(WebCore::FloatSize delta)
 
     nativeMomentumEvent.setRawPlatformDelta([&nativeMomentumEvent, velocity] {
         static constexpr WebCore::FramesPerSecond fallbackMomentumFrameRate { 60 };
+#if ENABLE(MOMENTUM_EVENT_DISPATCHER)
         auto momentumFrameRate = WebKit::ScrollingAccelerationCurve::fromNativeWheelEvent(nativeMomentumEvent)
             .or_else([] {
                 return WebKit::ScrollingAccelerationCurve::fallbackCurve();
             }).transform([](const auto& curve) {
                 return curve.frameRate();
             }).value_or(fallbackMomentumFrameRate);
+#else
+        UNUSED_VARIABLE(nativeMomentumEvent);
+        auto momentumFrameRate = fallbackMomentumFrameRate;
+#endif
         auto initialMomentumDelta = velocity / momentumFrameRate;
         return toRawPlatformDelta(initialMomentumDelta);
     }());

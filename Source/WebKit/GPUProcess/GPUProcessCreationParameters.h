@@ -48,8 +48,12 @@ struct GPUProcessCreationParameters {
     bool useMockCaptureDevices { false };
 #if PLATFORM(MAC)
     SandboxExtension::Handle microphoneSandboxExtensionHandle;
-    SandboxExtension::Handle launchServicesExtensionHandle;
 #endif
+#endif
+#if PLATFORM(MAC)
+    // DARLING: set and used on the Mac whether media streams are on or not
+    // (GPUProcessProxyCocoa.mm, GPUProcessCocoa.mm).
+    SandboxExtension::Handle launchServicesExtensionHandle;
 #endif
 
 #if USE(SANDBOX_EXTENSIONS_FOR_CACHE_AND_TEMP_DIRECTORY_ACCESS)

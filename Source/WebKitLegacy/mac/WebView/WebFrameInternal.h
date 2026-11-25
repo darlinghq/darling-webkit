@@ -90,7 +90,9 @@ WebView *getWebView(WebFrame *webFrame);
     NakedPtr<WebCore::LocalFrame> coreFrame;
     RetainPtr<WebFrameView> webFrameView;
     std::unique_ptr<WebScriptDebugger> scriptDebugger;
+#if ENABLE(VIDEO) // DARLING: caption preferences are part of WebCore's video support
     std::unique_ptr<WebCore::CaptionUserPreferencesTestingModeToken> captionPreferencesTestingModeToken;
+#endif
     id internalLoadDelegate;
     BOOL shouldCreateRenderers;
     BOOL includedInWebKitStatistics;

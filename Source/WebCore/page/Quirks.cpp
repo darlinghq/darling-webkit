@@ -2301,7 +2301,11 @@ bool Quirks::needsInstagramResizingReelsQuirk(const Element& element, const Rend
     if (!parentStyle.width().isPercent())
         return false;
 
+#if ENABLE(VIDEO) // DARLING: no video elements without VIDEO
     return descendantsOfType<HTMLVideoElement>(element).first();
+#else
+    return false;
+#endif
 }
 
 bool Quirks::needsWebKitMediaTextTrackDisplayQuirk() const

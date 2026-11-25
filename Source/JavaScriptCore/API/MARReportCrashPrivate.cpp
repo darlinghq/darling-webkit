@@ -35,7 +35,15 @@
 #endif
 #endif
 
-#if !USE(SYSTEM_MALLOC) && BENABLE(LIBPAS)
+// DARLING: BENABLE is only defined with bmalloc, and #if evaluates both
+// operands of &&, so the system allocator case is decided first.
+#if USE(SYSTEM_MALLOC)
+#define JSC_MAR_USES_LIBPAS 0
+#else
+#define JSC_MAR_USES_LIBPAS BENABLE(LIBPAS)
+#endif
+
+#if JSC_MAR_USES_LIBPAS
 
 ALWAYS_INLINE pas_mar_backtrace* toInternalRepresentation(PASMARCrashReportBacktraceRef backtrace)
 {
@@ -65,7 +73,7 @@ kern_return_t MARReportCrashExtractResults(vm_address_t faultAddress, mach_vm_ad
     return KERN_FAILURE;
 }
 
-#if !USE(SYSTEM_MALLOC) && BENABLE(LIBPAS)
+#if JSC_MAR_USES_LIBPAS
 
 PASMARCrashReportRef MARCrashReportCreate()
 {

@@ -378,6 +378,8 @@ void PageClientImpl::registerInsertionUndoGrouping()
     registerInsertionUndoGroupingWithUndoManager(retainPtr([m_view.get() undoManager]).get());
 }
 
+// DARLING: as in PageClient, which declares them only with the PDF HUD
+#if ENABLE(PDF_HUD)
 void PageClientImpl::createPDFHUD(PDFPluginIdentifier identifier, WebCore::FrameIdentifier frameID, const WebCore::IntRect& rect)
 {
     checkedImpl()->createPDFHUD(identifier, frameID, rect);
@@ -397,6 +399,7 @@ void PageClientImpl::removeAllPDFHUDs()
 {
     checkedImpl()->removeAllPDFHUDs();
 }
+#endif
 
 void PageClientImpl::clearAllEditCommands()
 {
@@ -1171,6 +1174,8 @@ void PageClientImpl::handleClickForDataDetectionResult(const DataDetectorElement
 
 #endif
 
+// DARLING: declared only with video, as in PageClient.h
+#if ENABLE(VIDEO)
 void PageClientImpl::beginTextRecognitionForVideoInElementFullscreen(ShareableBitmap::Handle&& bitmapHandle, FloatRect bounds)
 {
     checkedImpl()->beginTextRecognitionForVideoInElementFullscreen(WTF::move(bitmapHandle), bounds);
@@ -1180,6 +1185,7 @@ void PageClientImpl::cancelTextRecognitionForVideoInElementFullscreen()
 {
     checkedImpl()->cancelTextRecognitionForVideoInElementFullscreen();
 }
+#endif
 
 void PageClientImpl::didChangeLocalInspectorAttachment()
 {
@@ -1188,10 +1194,13 @@ void PageClientImpl::didChangeLocalInspectorAttachment()
 #endif
 }
 
+// DARLING: declared only with video, as in the header
+#if ENABLE(VIDEO)
 void PageClientImpl::showCaptionDisplaySettings(WebCore::HTMLMediaElementIdentifier identifier, const WebCore::ResolvedCaptionDisplaySettingsOptions& options, CompletionHandler<void(Expected<void, WebCore::ExceptionData>&&)>&& completionHandler)
 {
     checkedImpl()->showCaptionDisplaySettings(identifier, options, WTF::move(completionHandler));
 }
+#endif
 
 RetainPtr<NSView> PageClient::protectedViewForPresentingRevealPopover() const
 {

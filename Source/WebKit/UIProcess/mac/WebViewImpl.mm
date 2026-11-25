@@ -1700,6 +1700,8 @@ void WebViewImpl::viewDidEndLiveResize()
     [m_layoutStrategy didEndLiveResize];
 }
 
+// DARLING: WKPDFHUDView is built only with the PDF HUD
+#if ENABLE(PDF_HUD)
 void WebViewImpl::createPDFHUD(PDFPluginIdentifier identifier, WebCore::FrameIdentifier frameID, const WebCore::IntRect& rect)
 {
     removePDFHUD(identifier);
@@ -1726,13 +1728,18 @@ void WebViewImpl::removeAllPDFHUDs()
         [hud removeFromSuperview];
     _pdfHUDViews.clear();
 }
+#endif
 
 RetainPtr<NSSet> WebViewImpl::pdfHUDs()
 {
+#if ENABLE(PDF_HUD) // DARLING: the HUD views exist only with it
     RetainPtr<NSMutableSet<NSView *>> set = adoptNS([[NSMutableSet alloc] initWithCapacity:_pdfHUDViews.size()]);
     for (auto& hud : _pdfHUDViews.values())
         [set addObject:hud.get()];
     return set;
+#else
+    return adoptNS([[NSSet alloc] init]);
+#endif
 }
 
 void WebViewImpl::renewGState()
@@ -3490,12 +3497,14 @@ void WebViewImpl::handleRequestedCandidates(NSInteger sequenceNumber, NSArray<NS
         return;
 
 #if HAVE(TOUCH_BAR) || HAVE(INLINE_PREDICTIONS)
+#if HAVE(TOUCH_BAR) // DARLING: as candidateListTouchBarItem()
     NSRange selectedRange = NSMakeRange(postLayoutData->candidateRequestStartPosition, postLayoutData->selectedTextLength);
     WebCore::IntRect offsetSelectionRect = postLayoutData->selectionBoundingRect;
     offsetSelectionRect.move(0, offsetSelectionRect.height());
 
     RetainPtr candidateList = candidateListTouchBarItem();
     [candidateList setCandidates:candidates forSelectedRange:selectedRange inString:postLayoutData->paragraphContextForCandidateRequest.createNSString().get() rect:offsetSelectionRect view:m_view.get().get() completionHandler:nil];
+#endif
 
 #if HAVE(INLINE_PREDICTIONS)
     if (allowsInlinePredictions())

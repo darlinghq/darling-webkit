@@ -24,6 +24,10 @@
  */
 
 #import "config.h"
+
+// DARLING: only with AVFoundation, like the code that uses it.
+#if USE(AVFOUNDATION)
+
 #import "WebCoreDecompressionSession.h"
 
 #import "FormatDescriptionUtilities.h"
@@ -666,3 +670,5 @@ bool WebCoreDecompressionSession::isHardwareAccelerated() const
 }
 
 } // namespace WebCore
+
+#endif // USE(AVFOUNDATION)

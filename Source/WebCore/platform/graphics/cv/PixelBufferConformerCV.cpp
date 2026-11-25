@@ -24,6 +24,9 @@
  */
 
 #include "config.h"
+
+// DARLING: needs CoreMedia and VideoToolbox, whose soft links come with AVFoundation
+#if USE(AVFOUNDATION)
 #include "PixelBufferConformerCV.h"
 
 #include "CVUtilities.h"
@@ -230,3 +233,5 @@ RetainPtr<CGImageRef> PixelBufferConformerCV::imageFrom32BGRAPixelBuffer(RetainP
 }
 
 }
+
+#endif // USE(AVFOUNDATION)

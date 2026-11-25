@@ -38,7 +38,7 @@
 #include <wtf/text/AtomString.h>
 #include <wtf/threads/Signals.h>
 
-#if HAVE(QOS_CLASSES)
+#if HAVE(QOS_CLASSES) && !USE(SYSTEM_MALLOC) // DARLING: no bmalloc with the system allocator
 #include <bmalloc/bmalloc.h>
 #endif
 
@@ -446,7 +446,9 @@ static qos_class_t globalMaxQOSclass { QOS_CLASS_UNSPECIFIED };
 
 void Thread::setGlobalMaxQOSClass(qos_class_t maxClass)
 {
+#if !USE(SYSTEM_MALLOC) // DARLING: no bmalloc scavenger with the system allocator
     bmalloc::api::setScavengerThreadQOSClass(maxClass);
+#endif
     globalMaxQOSclass = maxClass;
 }
 

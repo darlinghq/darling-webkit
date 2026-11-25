@@ -24,6 +24,9 @@
  */
 
 #import "config.h"
+
+// DARLING: needs CoreMedia and VideoToolbox, whose soft links come with AVFoundation
+#if USE(AVFOUNDATION)
 #import "VideoLayerManagerObjC.h"
 
 #import "Color.h"
@@ -240,3 +243,5 @@ WTFLogChannel& VideoLayerManagerObjC::logChannel() const
 }
 
 }
+
+#endif // USE(AVFOUNDATION)
