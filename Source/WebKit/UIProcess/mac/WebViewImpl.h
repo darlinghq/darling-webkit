@@ -264,10 +264,13 @@ public:
     void viewWillStartLiveResize();
     void viewDidEndLiveResize();
 
+    // DARLING: WKPDFHUDView is built only with the PDF HUD
+#if ENABLE(PDF_HUD)
     void createPDFHUD(PDFPluginIdentifier, WebCore::FrameIdentifier, const WebCore::IntRect&);
     void updatePDFHUDLocation(PDFPluginIdentifier, const WebCore::IntRect&);
     void removePDFHUD(PDFPluginIdentifier);
     void removeAllPDFHUDs();
+#endif
     RetainPtr<NSSet> pdfHUDs();
 
     void renewGState();
@@ -844,11 +847,6 @@ private:
     void fulfillDeferredImageAnalysisOverlayViewHierarchyTask();
 #endif
 
-    bool hasContentRelativeChildViews() const;
-
-    void suppressContentRelativeChildViews();
-    void restoreContentRelativeChildViews();
-
     bool m_clientWantsMediaPlaybackControlsView { false };
     bool m_canCreateTouchBars { false };
     bool m_startedListeningToCustomizationEvents { false };
@@ -871,6 +869,12 @@ private:
     RetainPtr<AVTouchBarScrubber> m_mediaPlaybackControlsView;
 #endif // ENABLE(WEB_PLAYBACK_CONTROLS_MANAGER)
 #endif // HAVE(TOUCH_BAR)
+
+    // DARLING: out of the Touch Bar's block; they are for writing tools too.
+    bool hasContentRelativeChildViews() const;
+
+    void suppressContentRelativeChildViews();
+    void restoreContentRelativeChildViews();
 
     bool supportsArbitraryLayoutModes() const;
     float intrinsicDeviceScaleFactor() const;

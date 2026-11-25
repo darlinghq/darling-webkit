@@ -335,6 +335,10 @@ enum class VideoDecoderBehavior : uint8_t {
 
 static void setVideoDecoderBehaviors(OptionSet<VideoDecoderBehavior> videoDecoderBehavior)
 {
+    // DARLING: VideoToolbox is soft-linked only with AVFoundation
+#if !USE(AVFOUNDATION)
+    UNUSED_PARAM(videoDecoderBehavior);
+#else
     if (!(PAL::isVideoToolboxFrameworkAvailable() && PAL::canLoad_VideoToolbox_VTRestrictVideoDecoders()))
         return;
 
@@ -369,6 +373,7 @@ static void setVideoDecoderBehaviors(OptionSet<VideoDecoderBehavior> videoDecode
 #endif
 
     PAL::softLinkVideoToolboxVTRestrictVideoDecoders(flags, allowedCodecTypeList.span().data(), allowedCodecTypeList.size());
+#endif
 }
 
 void WebProcess::platformInitializeWebProcess(WebProcessCreationParameters& parameters)
@@ -572,7 +577,7 @@ void WebProcess::platformInitializeWebProcess(WebProcessCreationParameters& para
 
     WebCore::sleepDisablerClient() = makeUnique<WebSleepDisablerClient>();
 
-#if PLATFORM(MAC) && !ENABLE(HARDWARE_JPEG)
+#if PLATFORM(MAC) && !ENABLE(HARDWARE_JPEG) && USE(MEDIATOOLBOX) // DARLING: MediaToolbox is soft-linked only with USE(MEDIATOOLBOX)
     if (PAL::isMediaToolboxFrameworkAvailable() && PAL::canLoad_MediaToolbox_FigPhotoDecompressionSetHardwareCutoff())
         PAL::softLinkMediaToolboxFigPhotoDecompressionSetHardwareCutoff(kPALFigPhotoContainerFormat_JFIF, INT_MAX);
 #endif
@@ -1385,11 +1390,13 @@ static const WTF::String& userHighlightColorPreferenceKey()
 }
 #endif
 
+#if HAVE(MEDIA_ACCESSIBILITY_FRAMEWORK)
 static const WTF::String& captionProfilePreferenceKey()
 {
     static NeverDestroyed<WTF::String> key(MAKE_STATIC_STRING_IMPL("MACaptionActiveProfile"));
     return key;
 }
+#endif
 
 void WebProcess::dispatchSimulatedNotificationsForPreferenceChange(const String& key)
 {
@@ -1412,8 +1419,10 @@ void WebProcess::dispatchSimulatedNotificationsForPreferenceChange(const String&
         [notificationCenter postNotificationName:NSWorkspaceAccessibilityDisplayOptionsDidChangeNotification object:nil];
     }
 #endif
+#if HAVE(MEDIA_ACCESSIBILITY_FRAMEWORK) // DARLING: the notification is soft-linked only with the framework
     if (key == captionProfilePreferenceKey())
         CFNotificationCenterPostNotification(CFNotificationCenterGetLocalCenterSingleton(), kMAXCaptionAppearanceSettingsChangedNotification, nullptr, nullptr, true);
+#endif
 }
 
 void WebProcess::handlePreferenceChange(const String& domain, const String& key, id value)
@@ -1509,8 +1518,10 @@ void WebProcess::updatePageScreenProperties()
         return;
     }
 
+    // DARLING: the map holds Refs, which are never null (this code is built only without
+    // AVPlayer.videoRangeOverride)
     bool allPagesAreOnHDRScreens = std::ranges::all_of(m_pageMap.values(), [](auto& page) {
-        return page && screenSupportsHighDynamicRange(page->localMainFrameView());
+        return screenSupportsHighDynamicRange(page->localMainFrameView());
     });
     setShouldOverrideScreenSupportsHighDynamicRange(true, allPagesAreOnHDRScreens);
 #endif

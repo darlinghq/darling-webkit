@@ -23,7 +23,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if PLATFORM(COCOA) && ENABLE(GPU_PROCESS)
+# DARLING: only Web Audio has audio source providers.
+#if PLATFORM(COCOA) && ENABLE(GPU_PROCESS) && ENABLE(WEB_AUDIO)
 
 [
     DispatchedFrom=GPU,

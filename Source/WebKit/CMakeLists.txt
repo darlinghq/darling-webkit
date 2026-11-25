@@ -143,6 +143,7 @@ list(APPEND WebKit_UNIFIED_SOURCE_LIST_FILES
 set(WebKit_BINDINGS_IN_FILES
     WebProcess/Extensions/Interfaces/WebExtensionAPIAction
     WebProcess/Extensions/Interfaces/WebExtensionAPIAlarms
+    WebProcess/Extensions/Interfaces/WebExtensionAPIBookmarks
     WebProcess/Extensions/Interfaces/WebExtensionAPICommands
     WebProcess/Extensions/Interfaces/WebExtensionAPICookies
     WebProcess/Extensions/Interfaces/WebExtensionAPIDOM
@@ -289,6 +290,7 @@ set(WebKit_MESSAGES_IN_FILES
     Shared/IPCStreamTesterProxy
     Shared/IPCTester
     Shared/IPCTesterReceiver
+    Shared/IPCTesterReceiverSwift
 
     Shared/Notifications/NotificationManagerMessageHandler
 
@@ -842,8 +844,16 @@ if (PORT STREQUAL GTK OR PORT STREQUAL WPE)
     )
 endif ()
 
+# DARLING: links rather than copies, so that #import sees one file in a
+# header that is found both by its path in the sources and as <WebKit/...>.
+if (DARLING)
+    set(_WebKit_COPY_HEADERS WEBKIT_SYMLINK_FILES)
+else ()
+    set(_WebKit_COPY_HEADERS WEBKIT_COPY_FILES)
+endif ()
+
 if (WebKit_PUBLIC_FRAMEWORK_HEADERS)
-    WEBKIT_COPY_FILES(WebKit_CopyHeaders
+    cmake_language(CALL ${_WebKit_COPY_HEADERS} WebKit_CopyHeaders
         DESTINATION ${WebKit_FRAMEWORK_HEADERS_DIR}/WebKit
         FILES ${WebKit_PUBLIC_FRAMEWORK_HEADERS}
         FLATTENED
@@ -852,12 +862,17 @@ if (WebKit_PUBLIC_FRAMEWORK_HEADERS)
 endif ()
 
 if (WebKit_PRIVATE_FRAMEWORK_HEADERS)
-    WEBKIT_COPY_FILES(WebKit_CopyPrivateHeaders
+    cmake_language(CALL ${_WebKit_COPY_HEADERS} WebKit_CopyPrivateHeaders
         DESTINATION ${WebKit_PRIVATE_FRAMEWORK_HEADERS_DIR}/WebKit
         FILES ${WebKit_PRIVATE_FRAMEWORK_HEADERS}
         FLATTENED
     )
     list(APPEND WebKit_INTERFACE_DEPENDENCIES WebKit_CopyPrivateHeaders)
+    # DARLING: WebKit's sources include its private headers as <WebKit/...>,
+    # as the Xcode build allows, so they have to be there before it builds.
+    if (DARLING)
+        list(APPEND WebKit_DEPENDENCIES WebKit_CopyPrivateHeaders)
+    endif ()
 endif ()
 
 # Helper macro which wraps the generate-message-receiver.py script
@@ -868,7 +883,13 @@ macro(GENERATE_MESSAGE_SOURCES _output_source _inputs)
     unset(_outputs)
     foreach (_file IN ITEMS ${_inputs})
         get_filename_component(_name ${_file} NAME_WE)
-        list(APPEND _input_files ${WEBKIT_DIR}/${_file}.messages.in)
+        # DARLING: a receiver may be generated itself (LogStream, see
+        # PlatformMac.cmake); the script looks in the working directory first.
+        if (EXISTS ${WEBKIT_DIR}/${_file}.messages.in)
+            list(APPEND _input_files ${WEBKIT_DIR}/${_file}.messages.in)
+        else ()
+            list(APPEND _input_files ${WebKit_DERIVED_SOURCES_DIR}/${_file}.messages.in)
+        endif ()
         list(APPEND _outputs
             ${WebKit_DERIVED_SOURCES_DIR}/${_name}MessageReceiver.cpp
             ${WebKit_DERIVED_SOURCES_DIR}/${_name}Messages.h
@@ -916,6 +937,12 @@ macro(GENERATE_IDL_BINDINGS _output_source _inputs)
             ${WebKit_DERIVED_SOURCES_DIR}/JS${_name}.h
         )
         list(APPEND ${_output_source} ${WebKit_DERIVED_SOURCES_DIR}/JS${_name}.h)
+        # DARLING: and the implementation, which the Xcode build compiles too,
+        # with ARC (JSWebExtensionAPIUnified.mm)
+        if (DARLING)
+            list(APPEND ${_output_source} ${WebKit_DERIVED_SOURCES_DIR}/JS${_name}.mm)
+            set_source_files_properties(${WebKit_DERIVED_SOURCES_DIR}/JS${_name}.mm PROPERTIES COMPILE_OPTIONS -fobjc-arc)
+        endif ()
     endforeach ()
 
     add_custom_command(
@@ -947,6 +974,8 @@ list(APPEND WebKit_DERIVED_SOURCES
     ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializers.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
     ${WebKit_DERIVED_SOURCES_DIR}/SerializedTypeInfo.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
     ${WebKit_DERIVED_SOURCES_DIR}/WebKitPlatformGeneratedSerializers.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+    ${WebKit_DERIVED_SOURCES_DIR}/GeneratedWebKitSecureCoding.h
+    ${WebKit_DERIVED_SOURCES_DIR}/GeneratedWebKitSecureCoding.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
 )
 
 add_custom_command(
@@ -955,6 +984,8 @@ add_custom_command(
         ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializers.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
         ${WebKit_DERIVED_SOURCES_DIR}/SerializedTypeInfo.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
         ${WebKit_DERIVED_SOURCES_DIR}/WebKitPlatformGeneratedSerializers.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
+        ${WebKit_DERIVED_SOURCES_DIR}/GeneratedWebKitSecureCoding.h
+        ${WebKit_DERIVED_SOURCES_DIR}/GeneratedWebKitSecureCoding.${WebKit_GENERATED_SERIALIZERS_SUFFIX}
     MAIN_DEPENDENCY ${WEBKIT_DIR}/Scripts/generate-serializers.py
     DEPENDS
         ${WEBKIT_DIR}/Scripts/webkit/opaque_ipc_types.py

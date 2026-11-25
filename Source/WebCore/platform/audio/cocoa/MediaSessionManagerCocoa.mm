@@ -237,6 +237,7 @@ void MediaSessionManagerCocoa::beginInterruption(PlatformMediaSession::Interrupt
     PlatformMediaSessionManager::beginInterruption(type);
 }
 
+#if ENABLE(VIDEO) && USE(AVFOUNDATION) // DARLING: for the AVFoundation players only
 String MediaSessionManagerCocoa::audioTimePitchAlgorithmForMediaPlayerPitchCorrectionAlgorithm(MediaPlayer::PitchCorrectionAlgorithm pitchCorrectionAlgorithm, bool preservesPitch, double rate)
 {
     if (!preservesPitch || !rate || rate == 1.)
@@ -250,6 +251,7 @@ String MediaSessionManagerCocoa::audioTimePitchAlgorithmForMediaPlayerPitchCorre
         return AVAudioTimePitchAlgorithmTimeDomain;
     }
 }
+#endif
 
 void MediaSessionManagerCocoa::scheduleSessionStatusUpdate()
 {
@@ -688,6 +690,10 @@ std::optional<bool> MediaSessionManagerCocoa::supportsSpatialAudioPlaybackForCon
         return supportsSpatialAudioPlayback;
 
     auto calculateSpatialAudioSupport = [] (const MediaConfiguration& configuration) {
+#if !USE(AVFOUNDATION) // DARLING: the AudioToolbox soft links are AVFoundation's; no spatial audio without them
+        UNUSED_PARAM(configuration);
+        return false;
+#else
         if (!PAL::canLoad_AudioToolbox_AudioGetDeviceSpatialPreferencesForContentType())
             return false;
 
@@ -712,6 +718,7 @@ std::optional<bool> MediaSessionManagerCocoa::supportsSpatialAudioPlaybackForCon
         }
 
         return false;
+#endif
     };
 
     setSupportsSpatialAudioPlayback(calculateSpatialAudioSupport(configuration));

@@ -26,6 +26,9 @@
 #import "config.h"
 #import "WebCoreNSErrorExtras.h"
 
+// DARLING: only the AVFoundation media code uses this
+#if USE(AVFOUNDATION)
+
 #import <AVFoundation/AVError.h>
 #import <wtf/cocoa/TypeCastsCocoa.h>
 
@@ -45,3 +48,5 @@ long mediaKeyErrorSystemCode(NSError *error)
 }
 
 }
+
+#endif // USE(AVFOUNDATION)

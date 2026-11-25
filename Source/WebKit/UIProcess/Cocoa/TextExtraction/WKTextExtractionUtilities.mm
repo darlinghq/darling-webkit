@@ -40,6 +40,8 @@
 namespace WebKit {
 using namespace WebCore;
 
+#if HAVE(TEXT_EXTRACTION_ITEM_CLASSES)
+
 inline static WKTextExtractionContainer containerType(TextExtraction::ContainerType type)
 {
     switch (type) {
@@ -264,6 +266,8 @@ RetainPtr<WKTextExtractionItem> createItem(const TextExtraction::Item& item, Roo
 
     return createItemRecursive(item, WTF::move(converter));
 }
+
+#endif // HAVE(TEXT_EXTRACTION_ITEM_CLASSES)
 
 std::optional<double> computeSimilarity(NSString *stringA, NSString *stringB, unsigned minimumLength)
 {

@@ -24,6 +24,9 @@
  */
 
 #import "config.h"
+
+// DARLING: only AVFoundation's media player loads through this session
+#if USE(AVFOUNDATION)
 #import "WebCoreNSURLSession.h"
 
 #import "CachedResourceRequest.h"
@@ -1085,3 +1088,5 @@ void WebCoreNSURLSessionDataTaskClient::loadFinished(PlatformMediaResource& reso
     [self _resource:resource loadFinishedWithError:nil metrics:metrics];
 }
 @end
+
+#endif // USE(AVFOUNDATION)

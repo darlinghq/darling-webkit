@@ -26,7 +26,7 @@
 #import "config.h"
 #import "RemoteMediaPlayerProxy.h"
 
-#if ENABLE(GPU_PROCESS) && PLATFORM(COCOA)
+#if ENABLE(GPU_PROCESS) && PLATFORM(COCOA) && ENABLE(VIDEO) // DARLING: the media player classes exist only with video
 
 #import "LayerHostingContext.h"
 #import "LayerHostingContextManager.h"

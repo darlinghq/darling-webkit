@@ -323,6 +323,10 @@ String ImageDecoderCG::filenameExtension() const
 
 String ImageDecoderCG::accessibilityDescription() const
 {
+#if !HAVE(MEDIA_ACCESSIBILITY_FRAMEWORK)
+    // DARLING: without MediaAccessibility an image has no generated caption.
+    return { };
+#else
     if (!MediaAccessibilityLibrary() || !canLoad_MediaAccessibility_MAImageCaptioningCopyCaptionWithSource())
         return { };
     
@@ -330,6 +334,7 @@ String ImageDecoderCG::accessibilityDescription() const
     if (!description)
         return { };
     return description.get();
+#endif
 }
 
 EncodedDataStatus ImageDecoderCG::encodedDataStatus() const

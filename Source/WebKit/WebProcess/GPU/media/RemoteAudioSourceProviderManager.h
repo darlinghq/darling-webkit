@@ -25,7 +25,9 @@
 
 #pragma once
 
-#if PLATFORM(COCOA) && ENABLE(GPU_PROCESS)
+// DARLING: only Web Audio has audio source providers, so the GPU process is
+// built without them when Web Audio is off.
+#if PLATFORM(COCOA) && ENABLE(GPU_PROCESS) && ENABLE(WEB_AUDIO)
 
 #include "Connection.h"
 #include "SharedCARingBuffer.h"
@@ -85,4 +87,4 @@ private:
 
 } // namespace WebKit
 
-#endif // PLATFORM(COCOA) && ENABLE(GPU_PROCESS)
+#endif // PLATFORM(COCOA) && ENABLE(GPU_PROCESS) && ENABLE(WEB_AUDIO)

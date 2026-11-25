@@ -103,6 +103,8 @@ void SharedBufferBuilder::append(NSData *data)
     return append(bridge_cast(data));
 }
 
+// DARLING: the CoreMedia soft links come with AVFoundation
+#if USE(AVFOUNDATION)
 static void FreeDataSegment(void* refcon, void*, size_t)
 {
     auto* buffer = reinterpret_cast<const DataSegment*>(refcon);
@@ -151,6 +153,7 @@ RetainPtr<CMBlockBufferRef> FragmentedSharedBuffer::createCMBlockBuffer() const
     }
     return blockBuffer;
 }
+#endif // USE(AVFOUNDATION)
 
 RetainPtr<NSData> SharedBuffer::createNSData() const
 {

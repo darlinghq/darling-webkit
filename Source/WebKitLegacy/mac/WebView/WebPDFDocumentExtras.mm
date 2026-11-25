@@ -25,6 +25,11 @@
 
 #import "WebPDFDocumentExtras.h"
 
+// DARLING: only the PDF representation uses these, and it is built on PDFKit,
+// which may be missing (HAVE(PDFKIT)); they also parse with CoreGraphics' PDF
+// object API.
+#if HAVE(PDFKIT)
+
 #import <pal/spi/cg/CoreGraphicsSPI.h>
 #import <wtf/Vector.h>
 #import <wtf/RetainPtr.h>
@@ -134,3 +139,5 @@ NSArray *allScriptsInPDFDocument(PDFDocument *document)
     return allScriptsInPDFDocument([document documentRef]);
 }
 #endif
+
+#endif // HAVE(PDFKIT)

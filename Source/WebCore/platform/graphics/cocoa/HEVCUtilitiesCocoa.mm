@@ -24,6 +24,9 @@
  */
 
 #import "config.h"
+
+// DARLING: needs CoreMedia and VideoToolbox, whose soft links come with AVFoundation
+#if USE(AVFOUNDATION)
 #import "HEVCUtilitiesCocoa.h"
 
 #if PLATFORM(COCOA)
@@ -203,3 +206,5 @@ std::optional<MediaCapabilitiesInfo> validateDoViParameters(const DoViParameters
 }
 
 #endif // PLATFORM(COCOA)
+
+#endif // USE(AVFOUNDATION)

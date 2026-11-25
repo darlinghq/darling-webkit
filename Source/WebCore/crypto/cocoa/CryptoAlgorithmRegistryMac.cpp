@@ -55,9 +55,14 @@ void CryptoAlgorithmRegistry::platformRegisterAlgorithms()
     registerAlgorithm<CryptoAlgorithmAESCTR>();
     registerAlgorithm<CryptoAlgorithmAESGCM>();
     registerAlgorithm<CryptoAlgorithmAESKW>();
+#if !defined(CLANG_WEBKIT_BRANCH)
+    // DARLING: these are implemented with CryptoKit only, which needs Swift;
+    // without it they are not supported (NotSupportedError) instead of being
+    // unimplemented.
     registerAlgorithm<CryptoAlgorithmECDH>();
     registerAlgorithm<CryptoAlgorithmECDSA>();
     registerAlgorithm<CryptoAlgorithmEd25519>();
+#endif
     registerAlgorithm<CryptoAlgorithmHKDF>();
     registerAlgorithm<CryptoAlgorithmHMAC>();
     registerAlgorithm<CryptoAlgorithmPBKDF2>();
@@ -70,7 +75,9 @@ void CryptoAlgorithmRegistry::platformRegisterAlgorithms()
     registerAlgorithm<CryptoAlgorithmSHA256>();
     registerAlgorithm<CryptoAlgorithmSHA384>();
     registerAlgorithm<CryptoAlgorithmSHA512>();
+#if !defined(CLANG_WEBKIT_BRANCH)
     registerAlgorithm<CryptoAlgorithmX25519>();
+#endif
 }
 
 } // namespace WebCore

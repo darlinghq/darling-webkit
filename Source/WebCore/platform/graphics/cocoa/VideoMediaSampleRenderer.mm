@@ -24,6 +24,10 @@
  */
 
 #import "config.h"
+
+// DARLING: only with AVFoundation, like the code that uses it.
+#if USE(AVFOUNDATION)
+
 #import "VideoMediaSampleRenderer.h"
 
 #import "EffectiveRateChangedListener.h"
@@ -1330,3 +1334,5 @@ WTFLogChannel& VideoMediaSampleRenderer::logChannel() const
 #undef LogPerformance
 
 } // namespace WebCore
+
+#endif // USE(AVFOUNDATION)

@@ -42,7 +42,9 @@
 #import <wtf/cocoa/SpanCocoa.h>
 #import <wtf/cocoa/TypeCastsCocoa.h>
 
+#if HAVE(PDFKIT)
 #import "PDFKitSoftLink.h"
+#endif
 
 NSString * const WebKitOriginalTopPrintingMarginKey = @"WebKitOriginalTopMargin";
 NSString * const WebKitOriginalBottomPrintingMarginKey = @"WebKitOriginalBottomMargin";
@@ -462,6 +464,7 @@ static void prepareDataForPrintingOnSecondaryThread(WKPrintingView *view)
     return 0; // Invalid page number.
 }
 
+#if HAVE(PDFKIT)
 static RetainPtr<NSString> linkDestinationName(PDFDocument *document, PDFDestination *destination)
 {
     return adoptNS([[NSString alloc] initWithFormat:@"%lu-%f-%f", (unsigned long)[document indexForPage:retainPtr(destination.page).get()], destination.point.x, destination.point.y]);
@@ -518,6 +521,33 @@ static RetainPtr<NSString> linkDestinationName(PDFDocument *document, PDFDestina
 
     CGContextRestoreGState(context.get());
 }
+#else
+// DARLING: without PDFKit the page is drawn with CoreGraphics, and its links
+// are not carried over into the printed document.
+- (void)_drawPDFDocument:(CGPDFDocumentRef)pdfDocument page:(unsigned)page atPoint:(NSPoint)point
+{
+    if (!pdfDocument) {
+        LOG_ERROR("Couldn't create a PDF document with data passed for preview");
+        return;
+    }
+
+    CGPDFPageRef pdfPage = CGPDFDocumentGetPage(pdfDocument, page + 1);
+    if (!pdfPage) {
+        LOG_ERROR("Preview data doesn't have page %d", page);
+        return;
+    }
+
+    RetainPtr<CGContextRef> context = [[NSGraphicsContext currentContext] CGContext];
+    CGRect mediaBox = CGPDFPageGetBoxRect(pdfPage, kCGPDFMediaBox);
+
+    CGContextSaveGState(context.get());
+    CGContextTranslateCTM(context.get(), point.x, point.y);
+    CGContextScaleCTM(context.get(), _totalScaleFactorForPrinting, -_totalScaleFactorForPrinting);
+    CGContextTranslateCTM(context.get(), -mediaBox.origin.x, -mediaBox.origin.y - mediaBox.size.height);
+    CGContextDrawPDFPage(context.get(), pdfPage);
+    CGContextRestoreGState(context.get());
+}
+#endif
 
 - (void)_drawPreview:(NSRect)nsRect
 {
@@ -597,6 +627,7 @@ static RetainPtr<NSString> linkDestinationName(PDFDocument *document, PDFDestina
     ASSERT(!RunLoop::isMain());
     ASSERT(!_printedPagesData.isEmpty()); // Prepared by knowsPageRange:
 
+#if HAVE(PDFKIT)
     if (!_printedPagesPDFDocument) {
         RetainPtr pdfData = toNSData(_printedPagesData.span());
         _printedPagesPDFDocument = adoptNS([WebKit::allocPDFDocumentInstance() initWithData:pdfData.get()]);
@@ -622,6 +653,13 @@ static RetainPtr<NSString> linkDestinationName(PDFDocument *document, PDFDestina
             }
         }
     }
+#else
+    if (!_printedPagesPDFDocument) {
+        RetainPtr pdfData = toNSData(_printedPagesData.span());
+        RetainPtr provider = adoptCF(CGDataProviderCreateWithCFData(bridge_cast(pdfData.get())));
+        _printedPagesPDFDocument = adoptCF(CGPDFDocumentCreateWithProvider(provider.get()));
+    }
+#endif
 
     unsigned printedPageNumber = [self _pageForRect:nsRect] - [self _firstPrintedPageNumber];
     [self _drawPDFDocument:_printedPagesPDFDocument.get() page:printedPageNumber atPoint:NSMakePoint(nsRect.origin.x, nsRect.origin.y)];

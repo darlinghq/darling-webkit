@@ -31,6 +31,14 @@
 #import <wtf/text/StringView.h>
 
 @interface WTFContextualizedNSString : NSString
+#if !__OBJC2__
+// DARLING: the fragile (i386) Objective-C ABI has no instance variables
+// declared in @implementation, so they are declared here.
+{
+    StringView context;
+    StringView contents;
+}
+#endif
 - (instancetype)initWithContext:(StringView)context contents:(StringView)contents;
 @end
 

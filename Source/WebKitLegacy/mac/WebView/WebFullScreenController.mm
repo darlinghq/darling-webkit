@@ -255,12 +255,18 @@ ALLOW_DEPRECATED_DECLARATIONS_END
 
 static void setClipRectForWindow(NSWindow *window, NSRect clipRect)
 {
+#if HAVE(CGS_WINDOW_CLIP_SHAPE)
     CGSWindowID windowNumber = (CGSWindowID)window.windowNumber;
     CGSRegionObj shape;
     CGRect cgClipRect = NSRectToCGRect(clipRect);
     CGSNewRegionWithRect(&cgClipRect, &shape);
     CGSSetWindowClipShape(CGSMainConnectionID(), windowNumber, shape);
     CGSReleaseRegion(shape);
+#else
+    // DARLING: the window is not clipped while it animates.
+    UNUSED_PARAM(window);
+    UNUSED_PARAM(clipRect);
+#endif
 }
 
 - (void)finishedEnterFullScreenAnimation:(bool)completed

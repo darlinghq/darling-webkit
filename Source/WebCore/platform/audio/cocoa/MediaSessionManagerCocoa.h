@@ -59,7 +59,9 @@ public:
     static WEBCORE_EXPORT void clearNowPlayingInfo();
     static WEBCORE_EXPORT void setNowPlayingInfo(bool setAsNowPlayingApplication, bool shouldUpdateNowPlayingSuppression, const NowPlayingInfo&);
 
+#if ENABLE(VIDEO) && USE(AVFOUNDATION) // DARLING: for the AVFoundation players only
     static String audioTimePitchAlgorithmForMediaPlayerPitchCorrectionAlgorithm(MediaPlayerPitchCorrectionAlgorithm, bool preservesPitch, double rate);
+#endif
 
 protected:
     explicit MediaSessionManagerCocoa(PageIdentifier);

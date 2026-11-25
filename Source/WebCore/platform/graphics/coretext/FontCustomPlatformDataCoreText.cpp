@@ -60,6 +60,7 @@ FontPlatformData FontCustomPlatformData::fontPlatformData(const FontDescription&
     return platformData;
 }
 
+#if HAVE(FONT_PARSER)
 static RetainPtr<CFDataRef> extractFontCustomPlatformDataShared(RetainPtr<CFArrayRef>&& array, const String& itemInCollection)
 {
     if (!array)
@@ -97,6 +98,32 @@ static RetainPtr<CFDataRef> extractFontCustomPlatformDataSystemParser(const Shar
     RetainPtr array = adoptCF(FPFontCreateFontsFromData(bufferData.get()));
     return extractFontCustomPlatformDataShared(WTF::move(array), itemInCollection);
 }
+#else
+// DARLING: without FontParser, CoreText is given the web font data as it is,
+// and picks the collection's face by PostScript name itself.
+static RetainPtr<CFDataRef> extractFontCustomPlatformDataSystemParser(const SharedBuffer& buffer, const String&)
+{
+    return buffer.createCFData();
+}
+
+static RetainPtr<CTFontDescriptorRef> createFontDescriptorForItemInCollection(CFDataRef data, const String& itemInCollection)
+{
+    RetainPtr descriptors = adoptCF(CTFontManagerCreateFontDescriptorsFromData(data));
+    if (!descriptors || CFArrayGetCount(descriptors.get()) <= 0)
+        return nullptr;
+    if (!itemInCollection.isNull()) {
+        if (RetainPtr desiredName = itemInCollection.createCFString()) {
+            for (CFIndex i = 0; i < CFArrayGetCount(descriptors.get()); ++i) {
+                auto candidate = static_cast<CTFontDescriptorRef>(CFArrayGetValueAtIndex(descriptors.get(), i));
+                RetainPtr name = adoptCF(static_cast<CFStringRef>(CTFontDescriptorCopyAttribute(candidate, kCTFontNameAttribute)));
+                if (name && CFStringCompare(name.get(), desiredName.get(), 0) == kCFCompareEqualTo)
+                    return candidate;
+            }
+        }
+    }
+    return static_cast<CTFontDescriptorRef>(CFArrayGetValueAtIndex(descriptors.get(), 0));
+}
+#endif
 
 #if HAVE(CTFONTMANAGER_CREATEMEMORYSAFEFONTDESCRIPTORFROMDATA)
 static RetainPtr<CFDataRef> extractFontCustomPlatformDataMemorySafe(const SharedBuffer& buffer, const String& itemInCollection)
@@ -116,7 +143,13 @@ RefPtr<FontCustomPlatformData> FontCustomPlatformData::create(SharedBuffer& buff
         return nullptr;
     }
 
+#if HAVE(FONT_PARSER)
     RetainPtr fontDescriptor = adoptCF(CTFontManagerCreateFontDescriptorFromData(extractedData.get()));
+#else
+    RetainPtr fontDescriptor = createFontDescriptorForItemInCollection(extractedData.get(), itemInCollection);
+    if (!fontDescriptor)
+        return nullptr;
+#endif
     Ref bufferRef = SharedBuffer::create(extractedData.get());
 
     FontPlatformData::CreationData creationData = { WTF::move(bufferRef), itemInCollection };

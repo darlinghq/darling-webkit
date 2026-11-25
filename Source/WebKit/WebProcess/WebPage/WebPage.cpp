@@ -2745,8 +2745,10 @@ void WebPage::setDeviceScaleFactor(float scaleFactor)
 
     // Tell all our plug-in views that the device scale factor changed.
 #if PLATFORM(MAC)
+#if ENABLE(PDF_PLUGIN) // DARLING: the plug-in views exist only with the PDF plug-in
     for (Ref pluginView : m_pluginViews)
         pluginView->setDeviceScaleFactor(scaleFactor);
+#endif
 
     updateHeaderAndFooterLayersForDeviceScaleChange(scaleFactor);
 #endif
@@ -4294,7 +4296,7 @@ void WebPage::didStartPageTransition()
 #endif
     m_lastEditorStateWasContentEditable = EditorStateIsContentEditable::Unset;
 
-#if PLATFORM(MAC)
+#if PLATFORM(MAC) && HAVE(TOUCH_BAR) // DARLING: the flag is computed only with the Touch Bar
     if (hasPreviouslyFocusedDueToUserInteraction)
         send(Messages::WebPageProxy::SetHasFocusedElementWithUserInteraction(false));
 #endif

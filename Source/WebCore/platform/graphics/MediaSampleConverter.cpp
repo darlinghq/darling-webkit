@@ -30,7 +30,7 @@
 #include <WebCore/MediaSamplesBlock.h>
 #include <wtf/TZoneMallocInlines.h>
 
-#if PLATFORM(COCOA)
+#if PLATFORM(COCOA) && USE(AVFOUNDATION)
 #include <CoreMedia/CMFormatDescription.h>
 
 #include <pal/cf/CoreMediaSoftLink.h>
@@ -45,7 +45,7 @@ MediaSampleConverter::~MediaSampleConverter() = default;
 
 static bool hasSameInitSegment(const MediaSample& sampleA, const MediaSample& sampleB)
 {
-#if PLATFORM(COCOA)
+#if PLATFORM(COCOA) && USE(AVFOUNDATION)
     RetainPtr cmSampleA = sampleA.platformSample().cmSampleBuffer();
     RetainPtr cmSampleB = sampleB.platformSample().cmSampleBuffer();
     RetainPtr descriptionA = PAL::CMSampleBufferGetFormatDescription(cmSampleA.get());

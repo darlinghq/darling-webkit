@@ -2155,7 +2155,13 @@ static NSMutableSet *knownPluginMIMETypes()
 #if PLATFORM(IOS_FAMILY)
 #define WebPDFView ([WebView _getPDFViewClass])
 #endif
-    if (!viewClass || !repClass || [[WebPDFView supportedMIMETypes] containsObject:MIMEType]) {
+    // DARLING: without PDFKit there is no PDF view, so no MIME type is its.
+#if PLATFORM(IOS_FAMILY) || HAVE(PDFKIT)
+    bool isPDFType = [[WebPDFView supportedMIMETypes] containsObject:MIMEType];
+#else
+    bool isPDFType = false;
+#endif
+    if (!viewClass || !repClass || isPDFType) {
 #if PLATFORM(IOS_FAMILY)
 #undef WebPDFView
 #endif

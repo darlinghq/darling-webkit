@@ -49,7 +49,8 @@ NS_ASSUME_NONNULL_END
 
 #else
 
-#if __has_include(<UIKit/UIKit.h>)
+// DARLING: Darling's SDK has UIKit beside AppKit, so the platform decides.
+#if __has_include(<UIKit/UIKit.h>) && !PLATFORM(MAC)
 #import <UIKit/UIKit.h>
 typedef UIViewController * SOAuthorizationViewController;
 #elif __has_include(<AppKit/AppKit.h>)

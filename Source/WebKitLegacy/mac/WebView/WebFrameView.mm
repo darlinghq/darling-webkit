@@ -250,6 +250,8 @@ enum {
 
         // Since this is a "secret default" we don't bother registering it.
         BOOL omitPDFSupport = [[NSUserDefaults standardUserDefaults] boolForKey:@"WebKitOmitPDFSupport"];
+        // DARLING: without PDFKit there is no PDF view to show PDF documents with.
+#if PLATFORM(IOS_FAMILY) || HAVE(PDFKIT)
         if (!omitPDFSupport) {
 #if PLATFORM(IOS_FAMILY)
 #define WebPDFView ([WebView _getPDFViewClass])
@@ -259,6 +261,9 @@ enum {
 #undef WebPDFView
 #endif
         }
+#else
+        UNUSED_VARIABLE(omitPDFSupport);
+#endif
         return types;
     }();
     static BOOL addedImageTypes = NO;

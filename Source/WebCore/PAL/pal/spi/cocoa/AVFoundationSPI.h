@@ -486,9 +486,12 @@ NS_ASSUME_NONNULL_END
 @end
 #endif
 
+// DARLING: AVOutputContext is only declared above with wireless playback.
+#if USE(APPLE_INTERNAL_SDK) || ENABLE(WIRELESS_PLAYBACK_TARGET)
 NS_ASSUME_NONNULL_BEGIN
 @interface AVOutputContext(WKSecureCoding)
 - (NSDictionary *)_webKitPropertyListData;
 - (instancetype)_initWithWebKitPropertyListData:(NSDictionary *)plist;
 @end
 NS_ASSUME_NONNULL_END
+#endif

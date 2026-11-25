@@ -1310,11 +1310,13 @@ static bool validateArgument(id argument)
     });
 
 #if ENABLE(FULLSCREEN_API)
+#if ENABLE(VIDEO_PRESENTATION_MODE) // DARLING: as videoPresentationManager()
     if (RefPtr videoPresentationManager = _page->videoPresentationManager()) {
         videoPresentationManager->forEachSession([callbackAggregator] (auto& model, auto& interface) mutable {
             model.requestCloseAllMediaPresentations(false, [callbackAggregator] { });
         });
     }
+#endif
 
     if (RefPtr fullScreenManager = _page->fullScreenManager(); fullScreenManager && fullScreenManager->isFullScreen())
         fullScreenManager->closeWithCallback([callbackAggregator] { });
@@ -4320,7 +4322,11 @@ static RetainPtr<NSArray> wkTextManipulationErrors(NSArray<_WKTextManipulationIt
 
 - (BOOL)_canEnterFullscreen
 {
+#if ENABLE(VIDEO_PRESENTATION_MODE) // DARLING: as WebPageProxy::canEnterFullscreen()
     return _page->canEnterFullscreen();
+#else
+    return NO;
+#endif
 }
 
 - (BOOL)_isPictureInPictureActive
@@ -4453,8 +4459,10 @@ static RetainPtr<NSArray> wkTextManipulationErrors(NSArray<_WKTextManipulationIt
 
 - (void)_enterFullscreen
 {
+#if ENABLE(VIDEO_PRESENTATION_MODE) // DARLING: as WebPageProxy::enterFullscreen()
     if (RefPtr page = _page)
         page->enterFullscreen();
+#endif
 }
 
 #if ENABLE(ACCESSIBILITY_ANIMATION_CONTROL)
@@ -5293,10 +5301,12 @@ static void convertAndAddHighlight(Vector<Ref<WebCore::SharedMemory>>& buffers, 
 {
 #if ENABLE(FULLSCREEN_API)
     bool hasOpenMediaPresentations = false;
+#if ENABLE(VIDEO_PRESENTATION_MODE) // DARLING: as videoPresentationManager()
     if (RefPtr videoPresentationManager = _page->videoPresentationManager()) {
         hasOpenMediaPresentations = videoPresentationManager->hasMode(WebCore::HTMLMediaElementEnums::VideoFullscreenModePictureInPicture)
             || videoPresentationManager->hasMode(WebCore::HTMLMediaElementEnums::VideoFullscreenModeStandard);
     }
+#endif
 
     if (!hasOpenMediaPresentations) {
         RefPtr fullScreenManager = _page->fullScreenManager();
@@ -6419,9 +6429,13 @@ static Vector<Ref<API::TargetedElementInfo>> elementsFromWKElements(NSArray<_WKT
     if (!self._isValid)
         return completionHandler(NO);
 
+#if ENABLE(VIDEO_PRESENTATION_MODE) // DARLING: as WebPageProxy::playPredominantOrNowPlayingMediaSession()
     _page->playPredominantOrNowPlayingMediaSession([completionHandler = makeBlockPtr(completionHandler)](bool success) {
         completionHandler(static_cast<BOOL>(success));
     });
+#else
+    completionHandler(NO);
+#endif
 }
 
 - (void)_pauseNowPlayingMediaSession:(void(^)(BOOL))completionHandler
@@ -6429,9 +6443,13 @@ static Vector<Ref<API::TargetedElementInfo>> elementsFromWKElements(NSArray<_WKT
     if (!self._isValid)
         return completionHandler(NO);
 
+#if ENABLE(VIDEO_PRESENTATION_MODE) // DARLING: as WebPageProxy::pauseNowPlayingMediaSession()
     _page->pauseNowPlayingMediaSession([completionHandler = makeBlockPtr(completionHandler)](bool success) {
         completionHandler(static_cast<BOOL>(success));
     });
+#else
+    completionHandler(NO);
+#endif
 }
 
 - (void)_simulateClickOverFirstMatchingTextInViewportWithUserInteraction:(NSString *)targetText completionHandler:(void(^)(BOOL))completionHandler
@@ -7219,7 +7237,10 @@ static HashMap<String, HashMap<WebCore::JSHandleIdentifier, String>> extractClie
 
 - (void)_requestTextExtraction:(_WKTextExtractionConfiguration *)configuration completionHandler:(void(^)(WKTextExtractionItem *))completionHandler
 {
-#if USE(APPLE_INTERNAL_SDK) || (!PLATFORM(WATCHOS) && !PLATFORM(APPLETV))
+#if !HAVE(TEXT_EXTRACTION_ITEM_CLASSES)
+    // DARLING: there are no item classes to hand the result over in.
+    completionHandler(nil);
+#elif USE(APPLE_INTERNAL_SDK) || (!PLATFORM(WATCHOS) && !PLATFORM(APPLETV))
     [self _requestTextExtractionInternal:configuration completion:[completionHandler = makeBlockPtr(completionHandler), weakSelf = WeakObjCPtr<WKWebView>(self)](auto&& item) {
         RetainPtr strongSelf = weakSelf.get();
         if (!strongSelf)

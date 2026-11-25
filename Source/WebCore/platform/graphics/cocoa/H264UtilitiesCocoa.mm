@@ -24,6 +24,9 @@
  */
 
 #import "config.h"
+
+// DARLING: needs CoreMedia and VideoToolbox, whose soft links come with AVFoundation
+#if USE(AVFOUNDATION)
 #import "CMUtilities.h"
 #import "H264UtilitiesCocoa.h"
 
@@ -124,3 +127,4 @@ RefPtr<VideoInfo> createVideoInfoFromAVCC(std::span<const uint8_t> avcc)
 
 } // namespace WebCore
 
+#endif // USE(AVFOUNDATION)

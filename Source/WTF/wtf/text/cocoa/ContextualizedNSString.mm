@@ -29,10 +29,13 @@
 #import <algorithm>
 #import <wtf/text/StringView.h>
 
-@implementation WTFContextualizedNSString {
+@implementation WTFContextualizedNSString
+#if __OBJC2__
+{
     StringView context;
     StringView contents;
 }
+#endif
 
 - (instancetype)initWithContext:(StringView)context contents:(StringView)contents
 {

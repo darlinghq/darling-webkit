@@ -173,7 +173,9 @@ public:
 
 #if USE(FOUNDATION)
     WEBCORE_EXPORT RetainPtr<NSArray> createNSDataArray() const;
+#if USE(AVFOUNDATION)
     WEBCORE_EXPORT RetainPtr<CMBlockBufferRef> createCMBlockBuffer() const;
+#endif
 #endif
 
     WEBCORE_EXPORT Vector<uint8_t> copyData() const;

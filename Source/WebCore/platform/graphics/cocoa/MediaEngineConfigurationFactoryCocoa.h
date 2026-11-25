@@ -25,7 +25,7 @@
 
 #pragma once
 
-#if PLATFORM(COCOA)
+#if PLATFORM(COCOA) && ENABLE(VIDEO) // DARLING: it asks MediaPlayer
 
 namespace WebCore {
 

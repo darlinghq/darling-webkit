@@ -1336,6 +1336,7 @@ void WebProcessPool::registerDisplayConfigurationCallback()
         });
 }
 
+#if USE(MEDIATOOLBOX) // DARLING: as its registration, below
 static void webProcessPoolHighDynamicRangeDidChangeCallback(CFNotificationCenterRef, void*, CFNotificationName, const void*, CFDictionaryRef)
 {
     RunLoop::mainSingleton().dispatch([] {
@@ -1344,6 +1345,7 @@ static void webProcessPoolHighDynamicRangeDidChangeCallback(CFNotificationCenter
             pool->sendToAllProcesses(Messages::WebProcess::SetScreenProperties(properties));
     });
 }
+#endif
 
 void WebProcessPool::registerHighDynamicRangeChangeCallback()
 {
@@ -1351,6 +1353,7 @@ void WebProcessPool::registerHighDynamicRangeChangeCallback()
     std::call_once(
         onceFlag,
         [] {
+#if USE(MEDIATOOLBOX) // DARLING: the notification is MediaToolbox's
         if (!PAL::isMediaToolboxFrameworkAvailable()
             || !PAL::canLoad_MediaToolbox_MTShouldPlayHDRVideo()
             || !PAL::canLoad_MediaToolbox_MT_GetShouldPlayHDRVideoNotificationSingleton()
@@ -1358,6 +1361,7 @@ void WebProcessPool::registerHighDynamicRangeChangeCallback()
             return;
 
         CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenterSingleton(), nullptr, webProcessPoolHighDynamicRangeDidChangeCallback, kMTSupportNotification_ShouldPlayHDRVideoChanged, MT_GetShouldPlayHDRVideoNotificationSingleton(), static_cast<CFNotificationSuspensionBehavior>(0));
+#endif
     });
 }
 
@@ -1598,6 +1602,9 @@ void WebProcessPool::registerAdditionalFonts(NSArray *fontNames)
 }
 #endif // PLATFORM(MAC)
 
+// DARLING: only iOS registers the asset fonts (in WebProcessPool.cpp); the
+// Mac's CoreText need not have the matching API they use.
+#if PLATFORM(IOS)
 static URL fontURLFromName(ASCIILiteral fontName)
 {
     RetainPtr cfFontName = fontName.createCFString();
@@ -1651,5 +1658,6 @@ void WebProcessPool::registerAssetFonts(WebProcessProxy& process)
         CTFontDescriptorMatchFontDescriptorsWithProgressHandler((__bridge CFArrayRef)descriptions.get(), nullptr, blockPtr.get());
     });
 }
+#endif // PLATFORM(IOS)
 
 } // namespace WebKit

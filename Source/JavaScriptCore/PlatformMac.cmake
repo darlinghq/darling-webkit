@@ -1,3 +1,5 @@
+set(MACOSX_FRAMEWORK_IDENTIFIER com.apple.JavaScriptCore)
+
 add_definitions(-D__STDC_WANT_LIB_EXT1__)
 
 find_library(SECURITY_LIBRARY Security)
@@ -54,4 +56,13 @@ if (NOT EXISTS ${JavaScriptCore_DERIVED_SOURCES_DIR}/InspectorFrontendDispatcher
 endif ()
 if (NOT EXISTS ${JavaScriptCore_DERIVED_SOURCES_DIR}/InspectorProtocolObjects.h)
     file(WRITE ${JavaScriptCore_DERIVED_SOURCES_DIR}/InspectorProtocolObjects.h "#include \"inspector/InspectorProtocolObjects.h\"")
+endif ()
+
+# DARLING: PASReportCrashPrivate.h declares its API with a libpas type. With
+# the system allocator (the i386 slice) bmalloc is not built, so that one
+# self-contained libpas header is made available on its own.
+if (USE_SYSTEM_MALLOC)
+    configure_file(${CMAKE_SOURCE_DIR}/Source/bmalloc/libpas/src/libpas/pas_report_crash_pgm_report.h
+        ${CMAKE_BINARY_DIR}/DarlingLibpasHeaders/bmalloc/pas_report_crash_pgm_report.h COPYONLY)
+    list(APPEND JavaScriptCore_PRIVATE_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/DarlingLibpasHeaders)
 endif ()

@@ -26,7 +26,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if !PLATFORM(IOS_FAMILY)
+// DARLING: the PDF view is built on PDFKit, which may be missing (HAVE(PDFKIT)).
+#if !PLATFORM(IOS_FAMILY) && HAVE(PDFKIT)
 
 #import "WebPDFRepresentation.h"
 
@@ -107,4 +108,4 @@
 
 @end
 
-#endif // !PLATFORM(IOS_FAMILY)
+#endif // !PLATFORM(IOS_FAMILY) && HAVE(PDFKIT)

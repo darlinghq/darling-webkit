@@ -26,7 +26,8 @@
 #pragma once
 
 #include <wtf/Platform.h>
-#if PLATFORM(COCOA)
+// DARLING: as PlaybackSessionModel.h, which it builds on
+#if PLATFORM(COCOA) && (PLATFORM(IOS_FAMILY) || (PLATFORM(MAC) && ENABLE(VIDEO_PRESENTATION_MODE)))
 
 #include <WebCore/HTMLMediaElementEnums.h>
 #include <WebCore/PlaybackSessionModel.h>

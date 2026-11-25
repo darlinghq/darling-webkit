@@ -1108,7 +1108,7 @@ ALWAYS_INLINE JSString* jsStringWithCache(VM& vm, const String& s)
 
     auto& stringImpl = *s.impl();
     if (length == 1) {
-        if (auto c = stringImpl[0]; c <= maxSingleCharacterString)
+        if (auto c = stringImpl[0u]; c <= maxSingleCharacterString) // DARLING: 0u, as with a 32-bit ptrdiff_t, [0] is ambiguous with NSString* [] in ObjC++
             return vm.smallStrings.singleCharacterString(c);
     }
 

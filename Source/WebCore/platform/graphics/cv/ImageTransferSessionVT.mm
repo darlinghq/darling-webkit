@@ -24,6 +24,9 @@
  */
 
 #import "config.h"
+
+// DARLING: needs CoreMedia and VideoToolbox, whose soft links come with AVFoundation
+#if USE(AVFOUNDATION)
 #import "ImageTransferSessionVT.h"
 
 #import "CVUtilities.h"
@@ -350,3 +353,5 @@ RefPtr<VideoFrame> ImageTransferSessionVT::createVideoFrame(CMSampleBufferRef bu
 }
 
 } // namespace WebCore
+
+#endif // USE(AVFOUNDATION)

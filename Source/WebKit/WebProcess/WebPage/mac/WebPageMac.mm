@@ -84,6 +84,7 @@
 #import <WebCore/ImmediateActionStage.h>
 #import <WebCore/KeyboardEvent.h>
 #import <WebCore/LocalFrame.h>
+#import <WebCore/LocalFrameInlines.h> // DARLING: for the LocalFrame inline functions used below
 #import <WebCore/LocalFrameView.h>
 #import <WebCore/MIMETypeRegistry.h>
 #import <WebCore/NetworkStorageSession.h>
@@ -988,7 +989,13 @@ bool WebPage::shouldAvoidComputingPostLayoutDataForEditorState() const
         return false;
     }
 
-    if (!m_requiresUserActionForEditingControlsManager || !m_userInteractionsSincePageTransition.isEmpty()) {
+#if HAVE(TOUCH_BAR)
+    bool requiresUserActionForEditingControlsManager = m_requiresUserActionForEditingControlsManager;
+#else
+    // DARLING: without the Touch Bar nothing sets the flag, which stays false
+    bool requiresUserActionForEditingControlsManager = false;
+#endif
+    if (!requiresUserActionForEditingControlsManager || !m_userInteractionsSincePageTransition.isEmpty()) {
         // Text editing controls on the touch bar depend on having post-layout editor state data.
         return false;
     }

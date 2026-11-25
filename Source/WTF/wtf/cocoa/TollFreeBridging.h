@@ -30,6 +30,10 @@
 #import <CoreText/CTFont.h>
 #import <Foundation/Foundation.h>
 #import <wtf/spi/cocoa/IOSurfaceSPI.h>
+#if USE(APPKIT)
+// DARLING: none of the headers above declares NSFont in Darling's SDK.
+@class NSFont;
+#endif
 #endif
 
 namespace WTF {

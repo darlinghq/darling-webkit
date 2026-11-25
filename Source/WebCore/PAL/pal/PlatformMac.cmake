@@ -195,7 +195,7 @@ list(APPEND PAL_SOURCES
     cocoa/WebPrivacySoftLink.mm
     cocoa/WritingToolsUISoftLink.mm
 
-    crypto/commoncrypto/CryptoDigestCommonCrypto.mm
+    crypto/commoncrypto/CryptoDigestCommonCrypto.cpp
 
     mac/DataDetectorsSoftLink.mm
     mac/LookupSoftLink.mm
@@ -228,4 +228,81 @@ list(APPEND PAL_PRIVATE_INCLUDE_DIRECTORIES
     "${PAL_DIR}/pal/spi/cg"
     "${PAL_DIR}/pal/spi/cocoa"
     "${PAL_DIR}/pal/spi/mac"
+)
+
+# DARLING: headers and sources that PAL.xcodeproj builds for the Mac and that
+# the lists above lack. The iOS headers are among them because Mac code
+# includes them; their contents are guarded by platform.
+list(APPEND PAL_PUBLIC_HEADERS
+    PALSwift.h
+    cf/CoreAudioExtras.h
+    cocoa/AVFAudioSoftLink.h
+    cocoa/AccessibilitySoftLink.h
+    cocoa/ContactsSoftLink.h
+    cocoa/EnhancedSecurityCocoa.h
+    cocoa/LockdownModeCocoa.h
+    cocoa/WebContentAnalysisSoftLink.h
+    cocoa/WebContentRestrictionsSoftLink.h
+    graphics/cocoa/WebAVContentKeyGrouping.h
+    graphics/cocoa/WebAVContentKeyReportGroupExtras.h
+    mac/ScreenCaptureKitSoftLink.h
+    spi/cf/VideoToolboxSPI.h
+    spi/cocoa/ARKitSPI.h
+    spi/cocoa/AVStreamDataParserSPI.h
+    spi/cocoa/AppleJPEGXL/AppleJPEGXLSPI.h
+    spi/cocoa/AudioToolboxCoreSPI.h
+    spi/cocoa/ContactsSPI.h
+    spi/cocoa/CoreCryptoSPI.h
+    spi/cocoa/CoreMotionSPI.h
+    spi/cocoa/FoundationSPI.h
+    spi/cocoa/NSKeyedUnarchiverSPI.h
+    spi/cocoa/TranslationUIServicesSPI.h
+    spi/cocoa/UIFoundationSPI.h
+    spi/cocoa/UniformTypeIdentifiersSPI.h
+    spi/cocoa/WebContentRestrictionsSPI.h
+    spi/cocoa/WebPrivacySPI.h
+    spi/cocoa/WritingToolsSPI.h
+    spi/cocoa/WritingToolsUISPI.h
+    spi/mac/PowerLogSPI.h
+    ios/AVRoutingSoftLink.h
+    ios/ManagedConfigurationSoftLink.h
+    ios/QuickLookSoftLink.h
+    ios/ReplayKitSoftLink.h
+    ios/SystemStatusSoftLink.h
+    ios/UIKitSoftLink.h
+    spi/ios/AVRoutingSPI.h
+    spi/ios/AXRuntimeSPI.h
+    spi/ios/BarcodeSupportSPI.h
+    spi/ios/BrowserEngineKitSPI.h
+    spi/ios/CelestialSPI.h
+    spi/ios/CoreUISPI.h
+    spi/ios/DataDetectorsUISoftLink.h
+    spi/ios/IOKitSPIIOS.h
+    spi/ios/ManagedConfigurationSPI.h
+    spi/ios/MediaPlayerSPI.h
+    spi/ios/MobileGestaltSPI.h
+    spi/ios/MobileKeyBagSPI.h
+    spi/ios/OpenGLESSPI.h
+    spi/ios/QuickLookSPI.h
+    spi/ios/SBSStatusBarSPI.h
+    spi/ios/SystemPreviewSPI.h
+    spi/ios/UIKitSPI.h
+    spi/mac/NSSearchFieldCellSPI.h
+    spi/mac/NSTextFieldCellSPI.h
+    system/ios/Device.h
+    system/ios/UserInterfaceIdiom.h
+    spi/mac/QuarantineSPI.h
+    spi/mac/ScreenCaptureKitSPI.h
+)
+
+list(APPEND PAL_SOURCES
+    cocoa/AVFAudioSoftLink.mm
+    cocoa/AccessibilitySoftLink.mm
+    cocoa/ContactsSoftLink.mm
+    cocoa/EnhancedSecurityCocoa.mm
+    cocoa/LockdownModeCocoa.mm
+    cocoa/VisionSoftLink.mm
+    cocoa/WebContentAnalysisSoftLink.mm
+    cocoa/WebContentRestrictionsSoftLink.mm
+    mac/ScreenCaptureKitSoftLink.mm
 )

@@ -575,6 +575,8 @@ int WebPageProxy::footerBannerHeight() const
     return 0;
 }
 
+// DARLING: these serve only the PDF plugin.
+#if ENABLE(PDF_PLUGIN)
 static NSString *temporaryPDFDirectoryPath()
 {
     static NeverDestroyed path = [] {
@@ -650,6 +652,7 @@ void WebPageProxy::savePDFToTemporaryFolderAndOpenWithNativeApplication(const St
         [[NSWorkspace sharedWorkspace] openURL:pdfFileURL.createNSURL().get()];
     });
 }
+#endif // ENABLE(PDF_PLUGIN)
 
 #if ENABLE(PDF_PLUGIN)
 void WebPageProxy::showPDFContextMenu(const WebKit::PDFContextMenu& contextMenu, PDFPluginIdentifier identifier, WebCore::FrameIdentifier frameID, CompletionHandler<void(std::optional<int32_t>&&)>&& completionHandler)
@@ -834,6 +837,8 @@ std::optional<IPC::AsyncReplyID> WebPageProxy::willPerformPasteCommand(DOMPasteA
     }
 }
 
+// DARLING: declared only with wireless playback targets.
+#if ENABLE(WIRELESS_PLAYBACK_TARGET)
 RetainPtr<NSView> WebPageProxy::Internals::platformView() const
 {
     RefPtr pageClient = protectedPage()->pageClient();
@@ -842,6 +847,7 @@ RetainPtr<NSView> WebPageProxy::Internals::platformView() const
     RetainPtr window = pageClient->platformWindow();
     return [window contentView];
 }
+#endif
 
 #if ENABLE(PDF_PLUGIN)
 

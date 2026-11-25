@@ -1,4 +1,10 @@
-add_definitions("-ObjC++ -std=c++2b -D__STDC_WANT_LIB_EXT1__")
+if (DARLING)
+    # DARLING: C++ sources are built as C++, as the Xcode build does; as
+    # Objective-C++ the SDK's IOSurface class meets WebCore::IOSurface.
+    add_definitions("-std=c++2b -D__STDC_WANT_LIB_EXT1__")
+else ()
+    add_definitions("-ObjC++ -std=c++2b -D__STDC_WANT_LIB_EXT1__")
+endif ()
 find_library(APPLICATIONSERVICES_LIBRARY ApplicationServices)
 find_library(CARBON_LIBRARY Carbon)
 find_library(CORESERVICES_LIBRARY CoreServices)
@@ -32,8 +38,16 @@ list(APPEND WebKit_PRIVATE_LIBRARIES
     ${UNIFORMTYPEIDENTIFIERS_LIBRARY}
 )
 
-if (NOT AVFAUDIO_LIBRARY-NOTFOUND)
+if (AVFAUDIO_LIBRARY)
     list(APPEND WebKit_LIBRARIES ${AVFAUDIO_LIBRARY})
+endif ()
+
+if (DARLING)
+    # DARLING: WebKit re-exports WebKitLegacy, as the SDK's text stub of WebKit
+    # says, so that the legacy API (WebView, WebFrame, ...) is found by linking
+    # with WebKit alone.
+    list(REMOVE_ITEM WebKit_PRIVATE_LIBRARIES WebKitLegacy)
+    list(APPEND WebKit_PRIVATE_LIBRARIES "$<LINK_LIBRARY:REEXPORT_LIBRARY,WebKitLegacy>")
 endif ()
 
 list(APPEND WebKit_UNIFIED_SOURCE_LIST_FILES
@@ -50,7 +64,6 @@ list(APPEND WebKit_SOURCES
 
     NetworkProcess/mac/NetworkConnectionToWebProcessMac.mm
 
-    NetworkProcess/webrtc/NetworkRTCProvider.mm
     NetworkProcess/webrtc/NetworkRTCTCPSocketCocoa.mm
     NetworkProcess/webrtc/NetworkRTCUDPSocketCocoa.mm
     NetworkProcess/webrtc/NetworkRTCUtilitiesCocoa.mm
@@ -74,11 +87,9 @@ list(APPEND WebKit_SOURCES
     UIProcess/API/Cocoa/_WKResourceLoadStatisticsThirdParty.mm
 
     UIProcess/Cocoa/PreferenceObserver.mm
-    UIProcess/Cocoa/WKSafeBrowsingWarning.mm
     UIProcess/Cocoa/WKShareSheet.mm
     UIProcess/Cocoa/WKStorageAccessAlert.mm
     UIProcess/Cocoa/WebInspectorPreferenceObserver.mm
-    UIProcess/Cocoa/XPCConnectionTerminationWatchdog.mm
 
     UIProcess/PDF/WKPDFHUDView.mm
     UIProcess/PDF/WKPDFPageNumberIndicator.mm
@@ -88,8 +99,59 @@ list(APPEND WebKit_SOURCES
     WebProcess/WebAuthentication/WebAuthenticatorCoordinator.cpp
 
     WebProcess/cocoa/AudioSessionRoutingArbitrator.cpp
-    WebProcess/cocoa/HandleXPCEndpointMessages.mm
     WebProcess/cocoa/LaunchServicesDatabaseManager.mm
+)
+
+# DARLING: sources that the Xcode project compiles itself (they are in no
+# Sources*.txt list) and that the rest of WebKit needs. The PassKit, Contacts
+# and AVFoundation encoders are left out: those frameworks are off.
+list(APPEND WebKit_SOURCES
+    Platform/cocoa/_WKWebViewTextInputNotifications.mm
+    Shared/AdditionalFonts.mm
+    Shared/Cocoa/ArgumentCodersCocoa.mm
+    Shared/Cocoa/BackgroundFetchStateCocoa.mm
+    Shared/Cocoa/CoreIPCArray.mm
+    Shared/Cocoa/CoreIPCCFType.mm
+    Shared/Cocoa/CoreIPCCFURL.mm
+    Shared/Cocoa/CoreIPCCVPixelBufferRef.mm
+    Shared/Cocoa/CoreIPCDDScannerResult.mm
+    Shared/Cocoa/CoreIPCDateComponents.mm
+    Shared/Cocoa/CoreIPCDictionary.mm
+    Shared/Cocoa/CoreIPCError.mm
+    Shared/Cocoa/CoreIPCLocale.mm
+    Shared/Cocoa/CoreIPCNSCFObject.mm
+    Shared/Cocoa/CoreIPCNSShadow.mm
+    Shared/Cocoa/CoreIPCNSURLCredential.mm
+    Shared/Cocoa/CoreIPCNSURLProtectionSpace.mm
+    Shared/Cocoa/CoreIPCNSURLRequest.mm
+    Shared/Cocoa/CoreIPCNSValue.mm
+    Shared/Cocoa/CoreIPCNull.mm
+    Shared/Cocoa/CoreIPCPersonNameComponents.mm
+    Shared/Cocoa/CoreIPCPlistArray.mm
+    Shared/Cocoa/CoreIPCPlistDictionary.mm
+    Shared/Cocoa/CoreIPCPlistObject.mm
+    Shared/Cocoa/CoreIPCPresentationIntent.mm
+    Shared/Cocoa/CoreIPCSecureCoding.mm
+    Shared/Cocoa/CoreIPCStringSet.mm
+    Shared/Cocoa/CoreTextHelpers.mm
+    Shared/Cocoa/DataDetectionResult.mm
+    Shared/Cocoa/WKKeyedCoder.mm
+    Shared/Cocoa/WebPushMessageCocoa.mm
+    Shared/cf/CoreIPCCFArray.mm
+    Shared/cf/CoreIPCCFDictionary.mm
+    Shared/cf/CoreIPCCGColorSpace.mm
+    Shared/cf/CoreIPCNumber.mm
+    Shared/cf/CoreIPCSecTrust.mm
+    UIProcess/Cocoa/AboutSchemeHandlerCocoa.mm
+    UIProcess/Cocoa/AuxiliaryProcessProxyCocoa.mm
+    UIProcess/Cocoa/CSPExtensionUtilities.mm
+    UIProcess/Cocoa/_WKWarningView.mm
+    UIProcess/Downloads/DownloadProxyCocoa.mm
+    UIProcess/Extensions/WebExtensionCommand.cpp
+    UIProcess/Extensions/WebExtensionMenuItem.cpp
+    UIProcess/RemoteLayerTree/cocoa/RemoteScrollingTreeCocoa.mm
+    WebProcess/Inspector/ServiceWorkerDebuggableFrontendChannel.cpp
+    WebProcess/Inspector/ServiceWorkerDebuggableProxy.cpp
 )
 
 list(APPEND WebKit_PRIVATE_INCLUDE_DIRECTORIES
@@ -186,9 +248,11 @@ set(GPUProcess_SOURCES
 )
 
 # FIXME: These should not have Development in production builds.
-set(WebProcess_OUTPUT_NAME com.apple.WebKit.WebContent.Development)
-set(NetworkProcess_OUTPUT_NAME com.apple.WebKit.Networking.Development)
-set(GPUProcess_OUTPUT_NAME com.apple.WebKit.GPU.Development)
+# DARLING: the names of the services' executables in macOS's WebKit (the
+# ".Development" ones are a separate WebContent service, for injected code).
+set(WebProcess_OUTPUT_NAME com.apple.WebKit.WebContent)
+set(NetworkProcess_OUTPUT_NAME com.apple.WebKit.Networking)
+set(GPUProcess_OUTPUT_NAME com.apple.WebKit.GPU)
 
 set(WebProcess_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR})
 set(NetworkProcess_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR})
@@ -205,7 +269,43 @@ set(WebKit_FORWARDING_HEADERS_FILES
     UIProcess/API/C/WKPageRenderingProgressEvents.h
 )
 
+# DARLING: the sources of the log forwarding from the web process, which
+# DerivedSources.make generates for Xcode: the LogStream receiver and the
+# declarations of the log functions it forwards. Cocoa forwards them over
+# streaming IPC (ENABLE_STREAMING_IPC_IN_LOG_FORWARDING, PlatformEnableCocoa.h).
+set(WebKit_LOG_FORWARDING_OUTPUTS
+    LogStream.messages.in
+    LogMessagesDeclarations.h
+    LogMessagesImplementations.h
+    WebKitLogClientDeclarations.h
+    WebCoreLogClientDeclarations.h
+)
+list(TRANSFORM WebKit_LOG_FORWARDING_OUTPUTS PREPEND ${WebKit_DERIVED_SOURCES_DIR}/)
+add_custom_command(
+    OUTPUT ${WebKit_LOG_FORWARDING_OUTPUTS}
+    MAIN_DEPENDENCY ${WEBKIT_DIR}/Scripts/generate-derived-log-sources.py
+    DEPENDS
+        ${WEBKIT_DIR}/Platform/LogMessages.in
+        ${WEBCORE_DIR}/platform/LogMessages.in
+        ${WEBCORE_DIR}/Scripts/generate-log-declarations.py
+    COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${WEBCORE_DIR}/Scripts
+        ${PYTHON_EXECUTABLE} ${WEBKIT_DIR}/Scripts/generate-derived-log-sources.py
+        ${WEBKIT_DIR}/Platform/LogMessages.in ${WEBCORE_DIR}/platform/LogMessages.in
+        ${WebKit_LOG_FORWARDING_OUTPUTS} ENABLE_STREAMING_IPC_IN_LOG_FORWARDING
+    VERBATIM)
+list(APPEND WebKit_HEADERS ${WebKit_LOG_FORWARDING_OUTPUTS})
+
 list(APPEND WebKit_MESSAGES_IN_FILES
+    LogStream
+
+    # DARLING: receivers SourcesCocoa.txt builds that this list lacked
+    ModelProcess/cocoa/ModelProcessModelPlayerProxy
+    UIProcess/Cocoa/VideoPresentationManagerProxy
+    UIProcess/ios/SmartMagnificationController
+    UIProcess/ios/WebDeviceOrientationUpdateProviderProxy
+    WebProcess/WebCoreSupport/WebDeviceOrientationUpdateProvider
+    WebProcess/cocoa/VideoPresentationManager
+
     GPUProcess/media/RemoteImageDecoderAVFProxy
 
     GPUProcess/media/ios/RemoteMediaSessionHelperProxy
@@ -221,7 +321,9 @@ list(APPEND WebKit_MESSAGES_IN_FILES
     UIProcess/ViewGestureController
 
     UIProcess/Cocoa/PlaybackSessionManagerProxy
-    UIProcess/Cocoa/VideoFullscreenManagerProxy
+    # DARLING: VideoFullscreenManagerProxy and VideoFullscreenManager were
+    # renamed VideoPresentationManager(Proxy), listed above; the old names
+    # have no messages.in files any more.
 
     UIProcess/Inspector/WebInspectorUIExtensionControllerProxy
 
@@ -253,7 +355,6 @@ list(APPEND WebKit_MESSAGES_IN_FILES
     WebProcess/cocoa/PlaybackSessionManager
     WebProcess/cocoa/RemoteCaptureSampleManager
     WebProcess/cocoa/UserMediaCaptureManager
-    WebProcess/cocoa/VideoFullscreenManager
 )
 
 list(APPEND WebKit_SERIALIZATION_IN_FILES
@@ -321,13 +422,11 @@ list(APPEND WebKit_PUBLIC_FRAMEWORK_HEADERS
     UIProcess/API/Cocoa/WKBrowsingContextLoadDelegate.h
     UIProcess/API/Cocoa/WKBrowsingContextLoadDelegatePrivate.h
     UIProcess/API/Cocoa/WKBrowsingContextPolicyDelegate.h
-    UIProcess/API/Cocoa/WKConnection.h
     UIProcess/API/Cocoa/WKContentRuleList.h
     UIProcess/API/Cocoa/WKContentRuleListPrivate.h
     UIProcess/API/Cocoa/WKContentRuleListStore.h
     UIProcess/API/Cocoa/WKContentRuleListStorePrivate.h
     UIProcess/API/Cocoa/WKContentWorld.h
-    UIProcess/API/Cocoa/WKContentWorldConfiguration.h
     UIProcess/API/Cocoa/WKContentWorldPrivate.h
     UIProcess/API/Cocoa/WKContextMenuElementInfo.h
     UIProcess/API/Cocoa/WKContextMenuElementInfoPrivate.h
@@ -361,8 +460,6 @@ list(APPEND WebKit_PUBLIC_FRAMEWORK_HEADERS
     UIProcess/API/Cocoa/WKPreviewActionItem.h
     UIProcess/API/Cocoa/WKPreviewActionItemIdentifiers.h
     UIProcess/API/Cocoa/WKPreviewElementInfo.h
-    UIProcess/API/Cocoa/WKProcessGroup.h
-    UIProcess/API/Cocoa/WKProcessGroupPrivate.h
     UIProcess/API/Cocoa/WKProcessPool.h
     UIProcess/API/Cocoa/WKProcessPoolPrivate.h
     UIProcess/API/Cocoa/WKScriptMessage.h
@@ -746,7 +843,12 @@ set(ObjCForwardingHeaders
     DOMXPathResult.h
 )
 
-set(CMAKE_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS} "-compatibility_version 1 -current_version ${WEBKIT_MAC_VERSION}")
+# DARLING: the flags are one string; set() with the old value and a new one
+# makes a list, whose ";" ends the link command in the shell. Darling gives every
+# WebKit framework its version itself (DARLING_WEBKIT_VERSION_FLAGS).
+if (NOT DARLING)
+    string(APPEND CMAKE_SHARED_LINKER_FLAGS " -compatibility_version 1 -current_version ${WEBKIT_MAC_VERSION}")
+endif ()
 target_link_options(WebKit PRIVATE -lsandbox -framework AuthKit)
 
 set(WebKit_OUTPUT_NAME WebKit)
@@ -819,11 +921,115 @@ function(WEBKIT_DEFINE_XPC_SERVICES)
     add_custom_target(WebKitSandboxProfiles ALL DEPENDS ${WebKit_SB_FILES})
     add_dependencies(WebKit WebKitSandboxProfiles)
 
-    add_custom_command(OUTPUT ${WebKit_XPC_SERVICE_DIR}/com.apple.WebKit.WebContent.xpc/Contents/Resources/WebContentProcess.nib COMMAND
-        ibtool --compile ${WebKit_XPC_SERVICE_DIR}/com.apple.WebKit.WebContent.xpc/Contents/Resources/WebContentProcess.nib ${WEBKIT_DIR}/Resources/WebContentProcess.xib
-        VERBATIM)
-    add_custom_target(WebContentProcessNib ALL DEPENDS ${WebKit_XPC_SERVICE_DIR}/com.apple.WebKit.WebContent.xpc/Contents/Resources/WebContentProcess.nib)
-    add_dependencies(WebKit WebContentProcessNib)
+    # DARLING: only where Xcode's ibtool is (it compiles the XIB into a nib).
+    # The nib holds only the standard placeholder objects, and the service
+    # starts with xpc_main, not NSApplicationMain, so nothing loads it.
+    find_program(IBTOOL_EXECUTABLE ibtool)
+    if (IBTOOL_EXECUTABLE)
+        add_custom_command(OUTPUT ${WebKit_XPC_SERVICE_DIR}/com.apple.WebKit.WebContent.xpc/Contents/Resources/WebContentProcess.nib COMMAND
+            ${IBTOOL_EXECUTABLE} --compile ${WebKit_XPC_SERVICE_DIR}/com.apple.WebKit.WebContent.xpc/Contents/Resources/WebContentProcess.nib ${WEBKIT_DIR}/Resources/WebContentProcess.xib
+            VERBATIM)
+        add_custom_target(WebContentProcessNib ALL DEPENDS ${WebKit_XPC_SERVICE_DIR}/com.apple.WebKit.WebContent.xpc/Contents/Resources/WebContentProcess.nib)
+        add_dependencies(WebKit WebContentProcessNib)
+    endif ()
 endfunction()
 
 set(WebKit_GENERATED_SERIALIZERS_SUFFIX mm)
+
+if (DARLING)
+    # DARLING: the framework headers that the Xcode build installs, and the
+    # project headers that it finds through its header map, as WebKit.xcodeproj
+    # lists them; the lists above have fallen behind it.
+    execute_process(
+        COMMAND ${PYTHON_EXECUTABLE} ${WEBKIT_DIR}/../../darling/scripts/xcode-headers.py --all-project-headers
+            ${WEBKIT_DIR}/WebKit.xcodeproj/project.pbxproj WebKit
+        OUTPUT_VARIABLE _xcode_headers
+        COMMAND_ERROR_IS_FATAL ANY
+    )
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${WEBKIT_DIR}/WebKit.xcodeproj/project.pbxproj)
+    string(REPLACE "\n" ";" _xcode_headers "${_xcode_headers}")
+    set(WebKit_PUBLIC_FRAMEWORK_HEADERS)
+    set(WebKit_PRIVATE_FRAMEWORK_HEADERS)
+    set(_project_headers)
+    foreach (_line IN LISTS _xcode_headers)
+        if (_line MATCHES "^(Public|Private|Project) (.+)$")
+            if (CMAKE_MATCH_1 STREQUAL "Public")
+                list(APPEND WebKit_PUBLIC_FRAMEWORK_HEADERS ${CMAKE_MATCH_2})
+            elseif (CMAKE_MATCH_1 STREQUAL "Private")
+                list(APPEND WebKit_PRIVATE_FRAMEWORK_HEADERS ${CMAKE_MATCH_2})
+            elseif (EXISTS ${WEBKIT_DIR}/${CMAKE_MATCH_2})
+                # Generated project headers are in the derived sources already.
+                list(APPEND _project_headers ${CMAKE_MATCH_2})
+            endif ()
+        endif ()
+    endforeach ()
+
+    WEBKIT_SYMLINK_FILES(WebKit_ProjectHeaders
+        DESTINATION ${WebKit_DERIVED_SOURCES_DIR}/ProjectHeaders
+        FILES ${_project_headers}
+        FLATTENED
+    )
+    list(APPEND WebKit_DEPENDENCIES WebKit_ProjectHeaders)
+    # WebKit's own sources include its framework headers as <WebKit/...> too,
+    # and the project headers come last, as the header map comes after the
+    # other search paths.
+    list(APPEND WebKit_PRIVATE_INCLUDE_DIRECTORIES
+        ${WebKit_FRAMEWORK_HEADERS_DIR}
+        ${WebKit_PRIVATE_FRAMEWORK_HEADERS_DIR}
+        ${WebKit_DERIVED_SOURCES_DIR}/ProjectHeaders
+    )
+    # The header map also finds the framework headers by their names alone,
+    # and the project headers and WebKitLegacy's headers (which the Xcode
+    # build installs in WebKit.framework) as <WebKit/...>. Directories named
+    # WebKit that link to them give the same lookups, after the others.
+    set(_header_map_dir ${WebKit_DERIVED_SOURCES_DIR}/HeaderMap)
+    file(MAKE_DIRECTORY ${_header_map_dir}/Project ${_header_map_dir}/Legacy ${WebKit_DERIVED_SOURCES_DIR}/ProjectHeaders)
+    file(CREATE_LINK ${WebKit_DERIVED_SOURCES_DIR}/ProjectHeaders ${_header_map_dir}/Project/WebKit SYMBOLIC)
+    file(CREATE_LINK ${WebKitLegacy_FRAMEWORK_HEADERS_DIR}/WebKitLegacy ${_header_map_dir}/Legacy/WebKit SYMBOLIC)
+    list(APPEND WebKit_PRIVATE_INCLUDE_DIRECTORIES
+        ${WebKit_FRAMEWORK_HEADERS_DIR}/WebKit
+        ${WebKit_PRIVATE_FRAMEWORK_HEADERS_DIR}/WebKit
+        ${_header_map_dir}/Project
+        ${_header_map_dir}/Legacy
+    )
+
+    # DARLING: the bundle version that the Xcode build defines for WebKit's
+    # sources (WK_BUNDLE_VERSION_DEFINES in Configurations/BaseTarget.xcconfig)
+    # and that the UI process and its XPC services compare: that of a
+    # production build, the prefix of the macOS release and the full version
+    # (Configurations/Version.xcconfig).
+    file(STRINGS ${WEBKIT_DIR}/../../Configurations/Version.xcconfig _version_lines
+        REGEX "^([A-Z]+_VERSION|SYSTEM_VERSION_PREFIX_macosx_) = [0-9]+;?$")
+    foreach (_line IN LISTS _version_lines)
+        string(REGEX MATCH "^([A-Z_a-z]+) = ([0-9]+)" _ "${_line}")
+        set(_xcconfig_${CMAKE_MATCH_1} ${CMAKE_MATCH_2})
+    endforeach ()
+    if (NOT DEFINED _xcconfig_SYSTEM_VERSION_PREFIX_macosx_ OR NOT DEFINED _xcconfig_NANO_VERSION)
+        message(FATAL_ERROR "No version found in Configurations/Version.xcconfig")
+    endif ()
+    set(_bundle_version "${_xcconfig_SYSTEM_VERSION_PREFIX_macosx_}${_xcconfig_MAJOR_VERSION}.${_xcconfig_MINOR_VERSION}.${_xcconfig_TINY_VERSION}.${_xcconfig_MICRO_VERSION}.${_xcconfig_NANO_VERSION}")
+    list(APPEND WebKit_PRIVATE_DEFINITIONS "WEBKIT_BUNDLE_VERSION=\"${_bundle_version}\"")
+
+    # DARLING: the IPC serialization descriptions that the Xcode build
+    # generates serializers from, as DerivedSources.make lists them; the lists
+    # above have fallen behind it as well.
+    file(READ ${WEBKIT_DIR}/DerivedSources.make _derived_sources_make)
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${WEBKIT_DIR}/DerivedSources.make)
+    foreach (_list WebKit_SERIALIZATION_IN_FILES WebCore_SERIALIZATION_IN_FILES)
+        if (_list STREQUAL "WebKit_SERIALIZATION_IN_FILES")
+            set(_variable SERIALIZATION_DESCRIPTION_FILES)
+        else ()
+            set(_variable WEBCORE_SERIALIZATION_DESCRIPTION_FILES)
+        endif ()
+        # The variable's lines, each a tab and a file.
+        string(REGEX MATCH "\n${_variable} = \\\\\n(\t[^\n]*\n)+" _block "${_derived_sources_make}")
+        string(REGEX MATCHALL "[^ \t\n\\\\]+\\.serialization\\.in" _files "${_block}")
+        # Generated descriptions are added apart: WebCore's above, WebKit's
+        # SharedPreferencesForWebProcess below.
+        list(REMOVE_ITEM _files ${WebCore_GENERATED_SERIALIZATION_IN_FILES} SharedPreferencesForWebProcess.serialization.in)
+        set(${_list} ${_files})
+    endforeach ()
+    if (NOT WebKit_SERIALIZATION_IN_FILES OR NOT WebCore_SERIALIZATION_IN_FILES)
+        message(FATAL_ERROR "No serialization descriptions found in DerivedSources.make")
+    endif ()
+endif ()

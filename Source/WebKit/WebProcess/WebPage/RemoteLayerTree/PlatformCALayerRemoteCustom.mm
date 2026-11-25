@@ -80,11 +80,13 @@ PlatformCALayerRemoteCustom::PlatformCALayerRemoteCustom(WebCore::PlatformCALaye
     m_layerHostingContext = LayerHostingContext::createTransportLayerForRemoteHosting(hostedContextIdentifier);
 }
 
+#if HAVE(AVKIT) // DARLING: as create() for a video element, its only caller
 PlatformCALayerRemoteCustom::PlatformCALayerRemoteCustom(HTMLVideoElement& videoElement, PlatformCALayerClient* owner, RemoteLayerTreeContext& context)
     : PlatformCALayerRemoteCustom(PlatformCALayer::LayerType::LayerTypeAVPlayerLayer, videoElement.layerHostingContext().contextID, owner, context)
 {
     m_hasVideo = true;
 }
+#endif
 
 #if ENABLE(MODEL_PROCESS)
 PlatformCALayerRemoteCustom::PlatformCALayerRemoteCustom(WebCore::PlatformCALayer::LayerType layerType, Ref<WebCore::ModelContext> modelContext, PlatformCALayerClient* owner, RemoteLayerTreeContext& context)
@@ -154,6 +156,7 @@ Ref<WebCore::PlatformCALayer> PlatformCALayerRemoteCustom::clone(PlatformCALayer
 
     if (layerType() == PlatformCALayer::LayerType::LayerTypeAVPlayerLayer) {
         
+#if USE(AVFOUNDATION) // DARLING: AVFoundation is soft-linked only when used
         if (PAL::isAVFoundationFrameworkAvailable() && [m_platformLayer isKindOfClass:PAL::getAVPlayerLayerClassSingleton()]) {
             clonedLayer = adoptNS([PAL::allocAVPlayerLayerInstance() init]);
 
@@ -162,7 +165,9 @@ Ref<WebCore::PlatformCALayer> PlatformCALayerRemoteCustom::clone(PlatformCALayer
             RunLoop::mainSingleton().dispatch([destinationPlayerLayer = WTF::move(destinationPlayerLayer), sourcePlayerLayer = WTF::move(sourcePlayerLayer)] {
                 [destinationPlayerLayer setPlayer:[sourcePlayerLayer player]];
             });
-        } else {
+        } else
+#endif
+        {
             // On iOS, the AVPlayerLayer is inside a WebVideoContainerLayer. This code needs to share logic with MediaPlayerPrivateAVFoundationObjC::createAVPlayerLayer().
             clonedLayer = adoptNS([[CALayer alloc] init]);
         }

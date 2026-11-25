@@ -36,7 +36,10 @@
 #define USE(WTF_FEATURE) (defined USE_##WTF_FEATURE && USE_##WTF_FEATURE)
 
 
-#if PLATFORM(COCOA)
+/* DARLING: a build may set USE_APPLE_INTERNAL_SDK itself. Darling's SDK has
+   CFPriv.h (its CoreFoundation is open source), but it is not Apple's internal
+   SDK, so Darling builds with USE_APPLE_INTERNAL_SDK=0. */
+#if PLATFORM(COCOA) && !defined(USE_APPLE_INTERNAL_SDK)
 #if defined __has_include && __has_include(<CoreFoundation/CFPriv.h>)
 #define USE_APPLE_INTERNAL_SDK 1
 #endif
@@ -62,7 +65,8 @@
 #define USE_CA 1
 #endif
 
-#if PLATFORM(COCOA)
+/* DARLING: a value the build sets is kept. */
+#if PLATFORM(COCOA) && !defined(USE_CORE_IMAGE)
 #define USE_CORE_IMAGE 1
 #endif
 
@@ -99,7 +103,8 @@
 #define USE_APPKIT 1
 #endif
 
-#if PLATFORM(MAC) || PLATFORM(IOS) || PLATFORM(VISION)
+/* DARLING: a build without PassKit sets USE_PASSKIT to 0. */
+#if (PLATFORM(MAC) || PLATFORM(IOS) || PLATFORM(VISION)) && !defined(USE_PASSKIT)
 #define USE_PASSKIT 1
 #endif
 
@@ -119,7 +124,8 @@
 #define USE_PTHREADS 1
 #endif
 
-#if OS(DARWIN) && !PLATFORM(GTK)
+/* DARLING: a value the build sets is kept. */
+#if OS(DARWIN) && !PLATFORM(GTK) && !defined(USE_ACCELERATE)
 #define USE_ACCELERATE 1
 #endif
 
@@ -162,7 +168,8 @@
 #define USE_SYSTEM_PREVIEW 1
 #endif
 
-#if PLATFORM(COCOA)
+/* DARLING: a build without AVFoundation's media playback sets USE_AVFOUNDATION to 0. */
+#if PLATFORM(COCOA) && !defined(USE_AVFOUNDATION)
 #define USE_AVFOUNDATION 1
 #endif
 
@@ -208,7 +215,8 @@
 #define USE_AUDIO_SESSION 1
 #endif
 
-#if PLATFORM(COCOA)
+/* DARLING: a build without MediaToolbox sets USE_MEDIATOOLBOX to 0. */
+#if PLATFORM(COCOA) && !defined(USE_MEDIATOOLBOX)
 #define USE_MEDIATOOLBOX 1
 #endif
 

@@ -24,6 +24,9 @@
  */
 
 #import "config.h"
+
+// DARLING: needs CoreMedia and VideoToolbox, whose soft links come with AVFoundation
+#if USE(AVFOUNDATION)
 #import "SerializedPlatformDataCueValue.h"
 
 #import <AVFoundation/AVMetadataItem.h>
@@ -149,3 +152,5 @@ bool SerializedPlatformDataCueValue::Data::operator==(const Data& other) const
 }
 
 }
+
+#endif // USE(AVFOUNDATION)

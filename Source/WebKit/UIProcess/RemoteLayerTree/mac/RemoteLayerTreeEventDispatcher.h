@@ -78,9 +78,14 @@ class RemoteLayerTreeEventDispatcherDisplayLinkClient;
 // be main-thread only. It's the UI-process analogue of WebPage/EventDispatcher.
 class RemoteLayerTreeEventDispatcher
     : public ThreadSafeRefCountedAndCanMakeThreadSafeWeakPtr<RemoteLayerTreeEventDispatcher>
-    , public MomentumEventDispatcher::Client {
+#if ENABLE(MOMENTUM_EVENT_DISPATCHER)
+    , public MomentumEventDispatcher::Client
+#endif
+{
     WTF_MAKE_TZONE_ALLOCATED(RemoteLayerTreeEventDispatcher);
+#if ENABLE(MOMENTUM_EVENT_DISPATCHER)
     WTF_OVERRIDE_DELETE_FOR_CHECKED_PTR(RemoteLayerTreeEventDispatcher);
+#endif
     friend class RemoteLayerTreeEventDispatcherDisplayLinkClient;
 public:
     static Ref<RemoteLayerTreeEventDispatcher> create(RemoteScrollingCoordinatorProxyMac&, WebCore::PageIdentifier);

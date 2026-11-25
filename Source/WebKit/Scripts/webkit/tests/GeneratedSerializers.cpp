@@ -643,12 +643,12 @@ std::optional<SoftLinkedMember> ArgumentCoder<SoftLinkedMember>::decode(Decoder&
 }
 
 enum class WebCore_TimingFunction_Subclass : IPC::EncodedVariantIndex {
-    LinearTimingFunction
-    , CubicBezierTimingFunction
+    LinearTimingFunction,
+    CubicBezierTimingFunction,
 #if CONDITION
-    , StepsTimingFunction
+    StepsTimingFunction,
 #endif
-    , SpringTimingFunction
+    SpringTimingFunction,
 };
 
 IGNORE_WARNINGS_BEGIN("missing-noreturn")
@@ -808,7 +808,7 @@ std::optional<Ref<Namespace::AnotherCommonClass>> ArgumentCoder<Namespace::Anoth
 }
 
 enum class WebCore_MoveOnlyBaseClass_Subclass : IPC::EncodedVariantIndex {
-    MoveOnlyDerivedClass
+    MoveOnlyDerivedClass,
 };
 
 IGNORE_WARNINGS_BEGIN("missing-noreturn")

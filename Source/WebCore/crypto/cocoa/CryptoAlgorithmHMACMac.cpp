@@ -38,6 +38,24 @@
 
 namespace WebCore {
 
+#if defined(CLANG_WEBKIT_BRANCH)
+static std::optional<CCHmacAlgorithm> commonCryptoHMACAlgorithm(CryptoAlgorithmIdentifier hash)
+{
+    switch (hash) {
+    case CryptoAlgorithmIdentifier::SHA_1:
+        return kCCHmacAlgSHA1;
+    case CryptoAlgorithmIdentifier::SHA_256:
+        return kCCHmacAlgSHA256;
+    case CryptoAlgorithmIdentifier::SHA_384:
+        return kCCHmacAlgSHA384;
+    case CryptoAlgorithmIdentifier::SHA_512:
+        return kCCHmacAlgSHA512;
+    default:
+        return std::nullopt;
+    }
+}
+#endif
+
 static ExceptionOr<Vector<uint8_t>> platformSignCryptoKit(const CryptoKeyHMAC& key, const Vector<uint8_t>& data)
 {
 #if !defined(CLANG_WEBKIT_BRANCH)
@@ -45,9 +63,11 @@ static ExceptionOr<Vector<uint8_t>> platformSignCryptoKit(const CryptoKeyHMAC& k
         return Exception { ExceptionCode::OperationError };
     return PAL::HMAC::sign(key.key().span(), data.span(), std::to_underlying(toCKHashFunction(key.hashAlgorithmIdentifier())));
 #else
-    UNUSED_PARAM(key);
-    UNUSED_PARAM(data);
-    RELEASE_ASSERT_NOT_REACHED_WITH_MESSAGE("CLANG_WEBKIT_BRANCH");
+    // DARLING: without Swift, HMAC is computed by CommonCrypto.
+    auto algorithm = commonCryptoHMACAlgorithm(key.hashAlgorithmIdentifier());
+    if (!algorithm)
+        return Exception { ExceptionCode::OperationError };
+    return calculateHMACSignature(*algorithm, key.key(), data.span());
 #endif
 }
 
@@ -58,10 +78,13 @@ static ExceptionOr<bool> platformVerifyCryptoKit(const CryptoKeyHMAC& key, const
         return Exception { ExceptionCode::OperationError };
     return PAL::HMAC::verify(signature.span(), key.key().span(), data.span(), std::to_underlying(toCKHashFunction(key.hashAlgorithmIdentifier())));
 #else
-    UNUSED_PARAM(key);
-    UNUSED_PARAM(signature);
-    UNUSED_PARAM(data);
-    RELEASE_ASSERT_NOT_REACHED_WITH_MESSAGE("CLANG_WEBKIT_BRANCH");
+    auto algorithm = commonCryptoHMACAlgorithm(key.hashAlgorithmIdentifier());
+    if (!algorithm)
+        return Exception { ExceptionCode::OperationError };
+    auto expected = calculateHMACSignature(*algorithm, key.key(), data.span());
+    // a constant time comparison, so that the time taken does not reveal how
+    // much of the signature matched
+    return signature.size() == expected.size() && !constantTimeMemcmp(expected.span(), signature.span());
 #endif
 }
 

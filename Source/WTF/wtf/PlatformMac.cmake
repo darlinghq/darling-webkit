@@ -2,12 +2,26 @@ find_library(COCOA_LIBRARY Cocoa)
 find_library(COREFOUNDATION_LIBRARY CoreFoundation)
 find_library(READLINE_LIBRARY Readline)
 find_library(SECURITY_LIBRARY Security)
+if (DARLING)
+    # DARLING: JavaScriptCore on macOS links Foundation and CoreServices
+    # (Metadata), not AppKit (Cocoa), and no line editing library; WTF uses
+    # no AppKit API. Readline is only for the jsc shell's prompt.
+    find_library(FOUNDATION_LIBRARY Foundation)
+    find_library(CORESERVICES_LIBRARY CoreServices)
+    list(APPEND WTF_LIBRARIES
+        ${COREFOUNDATION_LIBRARY}
+        ${CORESERVICES_LIBRARY}
+        ${FOUNDATION_LIBRARY}
+        ${SECURITY_LIBRARY}
+    )
+else ()
 list(APPEND WTF_LIBRARIES
     ${COREFOUNDATION_LIBRARY}
     ${COCOA_LIBRARY}
     ${READLINE_LIBRARY}
     ${SECURITY_LIBRARY}
 )
+endif ()
 
 list(APPEND WTF_SOURCES
     BlockObjCExceptions.mm
@@ -33,7 +47,15 @@ list(APPEND WTF_SOURCES
     cocoa/MemoryPressureHandlerCocoa.mm
     cocoa/NSURLExtras.mm
     cocoa/ResourceUsageCocoa.cpp
-    cocoa/RuntimeApplicationChecksCocoa.cpp
+    cocoa/RuntimeApplicationChecksCocoa.mm
+    cocoa/AuditToken.mm
+    cocoa/SpanCocoa.mm
+    cocoa/UUIDCocoa.mm
+    text/cocoa/TextStreamCocoa.mm
+    ObjCRuntimeExtras.mm
+    PlatformRegisters.cpp
+    PtrTag.cpp
+    SizeLimits.cpp
     cocoa/SchedulePairCocoa.mm
     cocoa/SystemTracingCocoa.cpp
     cocoa/URLCocoa.mm
@@ -111,7 +133,46 @@ list(APPEND WTF_PUBLIC_HEADERS
     text/cf/TextBreakIteratorCF.h
 )
 
+# DARLING: headers that WTF.xcodeproj installs on macOS and this list lacked.
+list(APPEND WTF_PUBLIC_HEADERS
+    MachSendRightAnnotated.h
+    SequenceLocked.h
+
+    cocoa/AuditToken.h
+    cocoa/NSStringExtras.h
+    cocoa/SpanCocoa.h
+
+    darwin/LibraryPathDiagnostics.h
+    darwin/TypeCastsOSObject.h
+    darwin/XPCObjectPtr.h
+
+    posix/SocketPOSIX.h
+
+    spi/cf/CFPrivSPI.h
+    spi/cf/CFRunLoopSPI.h
+
+    spi/cocoa/BOMSPI.h
+    spi/cocoa/IOReturnSPI.h
+    spi/cocoa/IOTypesSPI.h
+    spi/cocoa/OSLogSPI.h
+    spi/cocoa/XTSPI.h
+
+    spi/darwin/DispatchSPI.h
+
+    text/cf/TextBreakIteratorCFCharacterCluster.h
+    text/cf/TextBreakIteratorCFStringTokenizer.h
+
+    text/cocoa/ContextualizedCFString.h
+    text/cocoa/ContextualizedNSString.h
+)
+
 file(COPY mac/MachExceptions.defs DESTINATION ${WTF_DERIVED_SOURCES_DIR})
+
+# DARLING: the MIG program and the options it needs for the target (Darling
+# runs a host build of it with the slice's -arch, -target and -isysroot).
+set(MIG_EXECUTABLE mig CACHE STRING "The Mach Interface Generator")
+set(MIG_FLAGS "" CACHE STRING "Options for the Mach Interface Generator")
+separate_arguments(_wtf_mig_flags UNIX_COMMAND "${MIG_FLAGS}")
 
 add_custom_command(
     OUTPUT
@@ -121,7 +182,7 @@ add_custom_command(
         ${WTF_DERIVED_SOURCES_DIR}/mach_excUser.c
     MAIN_DEPENDENCY mac/MachExceptions.defs
     WORKING_DIRECTORY ${WTF_DERIVED_SOURCES_DIR}
-    COMMAND mig -DMACH_EXC_SERVER_TASKIDTOKEN_STATE -sheader MachExceptionsServer.h MachExceptions.defs
+    COMMAND ${MIG_EXECUTABLE} ${_wtf_mig_flags} -DMACH_EXC_SERVER_TASKIDTOKEN_STATE -sheader MachExceptionsServer.h MachExceptions.defs
     VERBATIM)
 list(APPEND WTF_SOURCES
     ${WTF_DERIVED_SOURCES_DIR}/mach_excServer.c

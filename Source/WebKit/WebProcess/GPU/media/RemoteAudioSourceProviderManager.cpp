@@ -34,7 +34,9 @@
 #include "WebProcess.h"
 #include <wtf/TZoneMallocInlines.h>
 
-#if PLATFORM(COCOA) && ENABLE(GPU_PROCESS)
+// DARLING: only Web Audio has audio source providers, so the GPU process is
+// built without them when Web Audio is off.
+#if PLATFORM(COCOA) && ENABLE(GPU_PROCESS) && ENABLE(WEB_AUDIO)
 
 namespace WebKit {
 using namespace WebCore;
@@ -154,4 +156,4 @@ void RemoteAudioSourceProviderManager::RemoteAudio::audioSamplesAvailable(uint64
 
 }
 
-#endif // PLATFORM(COCOA) && ENABLE(GPU_PROCESS)
+#endif // PLATFORM(COCOA) && ENABLE(GPU_PROCESS) && ENABLE(WEB_AUDIO)

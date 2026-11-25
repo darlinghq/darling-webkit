@@ -100,7 +100,7 @@ case "${INPUT_FILE_PATH}" in
     ;;
 */WebKitLegacy.framework/*)
     if [ "${WK_PLATFORM_NAME}" = macosx ]; then
-        SED_OPTIONS+=(-e "s/\<WebKitLegacy/\<WebKit/")
+        SED_OPTIONS+=(-e "s/<WebKitLegacy\//<WebKit\//")
     elif [ "${SCRIPT_HEADER_VISIBILITY}" = public ]; then
         echo "#if defined(__has_include) && __has_include(<WebKitLegacy/${INPUT_FILE_NAME}>)" > "${SCRIPT_OUTPUT_FILE_0}"
         echo "#import <WebKitLegacy/${INPUT_FILE_NAME}>" >> "${SCRIPT_OUTPUT_FILE_0}"

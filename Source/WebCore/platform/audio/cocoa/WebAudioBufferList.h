@@ -25,6 +25,12 @@
 
 #pragma once
 
+#include <wtf/Platform.h>
+
+// DARLING: needs CoreMedia and AudioToolbox, which are only soft-linked with
+// AVFoundation (the PAL soft-link headers are guarded the same way).
+#if USE(AVFOUNDATION)
+
 #include <CoreAudio/CoreAudioTypes.h>
 #include <WebCore/PlatformAudioData.h>
 #include <pal/cf/CoreAudioExtras.h>
@@ -97,3 +103,5 @@ private:
 SPECIALIZE_TYPE_TRAITS_BEGIN(WebCore::WebAudioBufferList)
 static bool isType(const WebCore::PlatformAudioData& data) { return data.kind() == WebCore::PlatformAudioData::Kind::WebAudioBufferList; }
 SPECIALIZE_TYPE_TRAITS_END()
+
+#endif // USE(AVFOUNDATION)

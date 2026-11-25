@@ -38,7 +38,7 @@
 #include <wtf/NeverDestroyed.h>
 #include <wtf/Vector.h>
 
-#if PLATFORM(COCOA)
+#if PLATFORM(COCOA) && ENABLE(VIDEO) // DARLING: the Cocoa factory needs VIDEO
 #include "MediaEngineConfigurationFactoryCocoa.h"
 #endif
 
@@ -58,7 +58,7 @@ using FactoryVector = Vector<MediaEngineConfigurationFactory::MediaEngineFactory
 static FactoryVector defaultFactories()
 {
     FactoryVector factories;
-#if PLATFORM(COCOA)
+#if PLATFORM(COCOA) && ENABLE(VIDEO)
     factories.append({ &createMediaPlayerDecodingConfigurationCocoa, nullptr });
 #endif
 #if USE(GSTREAMER)

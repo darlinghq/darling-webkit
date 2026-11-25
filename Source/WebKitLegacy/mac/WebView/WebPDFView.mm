@@ -28,7 +28,8 @@
 
 #import "WebPDFView.h"
 
-#if PLATFORM(MAC)
+// DARLING: the PDF view is built on PDFKit, which may be missing (HAVE(PDFKIT)).
+#if PLATFORM(MAC) && HAVE(PDFKIT)
 
 #import "DOMNodeInternal.h"
 #import "DOMRangeInternal.h"

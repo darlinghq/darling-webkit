@@ -152,6 +152,7 @@ RetainPtr<CocoaImage> iconForVideoFile(NSURL *file)
 {
     ASSERT_ARG(file, [file isFileURL]);
 
+#if USE(AVFOUNDATION)
     RetainPtr<AVURLAsset> asset = adoptNS([PAL::allocAVURLAssetInstance() initWithURL:file options:nil]);
     RetainPtr<AVAssetImageGenerator> generator = adoptNS([PAL::allocAVAssetImageGeneratorInstance() initWithAsset:asset.get()]);
     [generator setAppliesPreferredTrackTransform:YES];
@@ -166,6 +167,11 @@ ALLOW_DEPRECATED_DECLARATIONS_END
     }
 
     return thumbnailSizedImageForImage(imageRef.get());
+#else
+    // DARLING: without AVFoundation there is no frame to show, and a movie
+    // gets the icon of any other file.
+    return fallbackIconForFile(file);
+#endif
 }
 
 RetainPtr<CocoaImage> iconForFiles(const Vector<String>& filenames)

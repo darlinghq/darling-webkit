@@ -30,7 +30,9 @@
 
 #include "Document.h"
 #include "DocumentLoader.h"
+#include "DocumentSettingsValues.h"
 #include "EventNames.h"
+#include "FrameDestructionObserverInlines.h"
 #include "FrameLoader.h"
 #include "HTMLBodyElement.h"
 #include "HTMLHeadElement.h"

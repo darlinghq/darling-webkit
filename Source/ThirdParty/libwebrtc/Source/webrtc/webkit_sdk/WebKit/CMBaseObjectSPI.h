@@ -25,7 +25,9 @@
 
 #pragma once
 
-#if defined __has_include && __has_include(<CoreFoundation/CFPriv.h>)
+// DARLING: an SDK with CFPriv.h is not Apple's internal one when the build
+// says so (USE_APPLE_INTERNAL_SDK=0).
+#if defined __has_include && __has_include(<CoreFoundation/CFPriv.h>) && !(defined(USE_APPLE_INTERNAL_SDK) && !USE_APPLE_INTERNAL_SDK)
 #include <CoreMedia/CMBaseObject.h>
 #else
 

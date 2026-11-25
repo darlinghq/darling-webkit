@@ -40,9 +40,13 @@ static ExceptionOr<Vector<uint8_t>> wrapKeyAESKWCryptoKit(const Vector<uint8_t>&
         return Exception { ExceptionCode::OperationError };
     return WTF::move(rv.result);
 #else
-    UNUSED_PARAM(key);
-    UNUSED_PARAM(data);
-    RELEASE_ASSERT_NOT_REACHED_WITH_MESSAGE("CLANG_WEBKIT_BRANCH");
+    // DARLING: without Swift, the key is wrapped by CommonCrypto (RFC 3394).
+    Vector<uint8_t> result(CCSymmetricWrappedSize(kCCWRAPAES, data.size()));
+    size_t resultSize = result.size();
+    if (CCSymmetricKeyWrap(kCCWRAPAES, CCrfc3394_iv, CCrfc3394_ivLen, key.span().data(), key.size(), data.span().data(), data.size(), result.mutableSpan().data(), &resultSize))
+        return Exception { ExceptionCode::OperationError };
+    result.shrink(resultSize);
+    return WTF::move(result);
 #endif
 }
 
@@ -54,9 +58,12 @@ static ExceptionOr<Vector<uint8_t>> unwrapKeyAESKWCryptoKit(const Vector<uint8_t
         return Exception { ExceptionCode::OperationError };
     return WTF::move(rv.result);
 #else
-    UNUSED_PARAM(key);
-    UNUSED_PARAM(data);
-    RELEASE_ASSERT_NOT_REACHED_WITH_MESSAGE("CLANG_WEBKIT_BRANCH");
+    Vector<uint8_t> result(CCSymmetricUnwrappedSize(kCCWRAPAES, data.size()));
+    size_t resultSize = result.size();
+    if (CCSymmetricKeyUnwrap(kCCWRAPAES, CCrfc3394_iv, CCrfc3394_ivLen, key.span().data(), key.size(), data.span().data(), data.size(), result.mutableSpan().data(), &resultSize))
+        return Exception { ExceptionCode::OperationError };
+    result.shrink(resultSize);
+    return WTF::move(result);
 #endif
 }
 

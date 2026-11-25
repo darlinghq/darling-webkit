@@ -24,6 +24,9 @@
  */
 
 #import "config.h"
+
+// DARLING: only WebCoreNSURLSession, which is built with AVFoundation, uses it.
+#if USE(AVFOUNDATION)
 #import "RangeResponseGenerator.h"
 
 #import "HTTPStatusCodes.h"
@@ -330,3 +333,5 @@ bool RangeResponseGenerator::willSynthesizeRangeResponses(WebCoreNSURLSessionDat
 }
 
 } // namespace WebCore
+
+#endif // USE(AVFOUNDATION)

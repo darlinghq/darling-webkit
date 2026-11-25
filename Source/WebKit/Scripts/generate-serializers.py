@@ -1069,10 +1069,9 @@ def generate_one_impl(type, template_argument, serialized_types):
             member = type.members[idx]
             if member.condition is not None:
                 result.append(f'#if {member.condition}')
-            if idx == 0:
-                result.append(f'    {member.name}')
-            else:
-                result.append(f'    , {member.name}')
+            # DARLING: a trailing comma on each one, so that the list still
+            # compiles when the first member's condition is false.
+            result.append(f'    {member.name},')
             if member.condition is not None:
                 result.append('#endif')
         result.append('};')

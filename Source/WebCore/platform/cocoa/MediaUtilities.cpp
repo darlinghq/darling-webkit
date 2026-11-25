@@ -24,6 +24,10 @@
  */
 
 #include "config.h"
+
+// DARLING: needs CoreMedia and AudioToolbox, which are only soft-linked with
+// AVFoundation (the PAL soft-link headers are guarded the same way).
+#if USE(AVFOUNDATION)
 #include "MediaUtilities.h"
 
 #include "AudioStreamDescription.h"
@@ -86,3 +90,5 @@ RetainPtr<CMSampleBufferRef> createVideoSampleBuffer(CVPixelBufferRef pixelBuffe
 }
 
 } // namespace WebCore
+
+#endif // USE(AVFOUNDATION)

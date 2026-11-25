@@ -91,6 +91,8 @@ static inline void*& stackPointerImpl(PlatformRegisters& regs)
 
 #if CPU(X86_64)
     return reinterpret_cast<void*&>(regs.__rsp);
+#elif CPU(X86) // DARLING: i386, x86_thread_state32_t
+    return reinterpret_cast<void*&>(regs.__esp);
 #elif CPU(PPC) || CPU(PPC64)
     return reinterpret_cast<void*&>(regs.__r1);
 #elif CPU(ARM_THUMB2) || CPU(ARM)
@@ -229,6 +231,8 @@ static inline void*& framePointerImpl(PlatformRegisters& regs)
 
 #if CPU(X86_64)
     return reinterpret_cast<void*&>(regs.__rbp);
+#elif CPU(X86) // DARLING: i386, x86_thread_state32_t
+    return reinterpret_cast<void*&>(regs.__ebp);
 #elif CPU(ARM64)
     return reinterpret_cast<void*&>(regs.__x[29]);
 #else
@@ -357,6 +361,8 @@ static inline void*& instructionPointerImpl(PlatformRegisters& regs)
 
 #if CPU(X86_64)
     return reinterpret_cast<void*&>(regs.__rip);
+#elif CPU(X86) // DARLING: i386, x86_thread_state32_t
+    return reinterpret_cast<void*&>(regs.__eip);
 #elif CPU(ARM_THUMB2) || CPU(ARM)
     return reinterpret_cast<void*&>(regs.__pc);
 #else
@@ -536,6 +542,8 @@ inline void*& argumentPointer<1>(PlatformRegisters& regs)
 
 #if CPU(X86_64)
     return reinterpret_cast<void*&>(regs.__rsi);
+#elif CPU(X86) // DARLING: i386, x86_thread_state32_t; JSC's second argument register
+    return reinterpret_cast<void*&>(regs.__edx);
 #elif CPU(ARM_THUMB2) || CPU(ARM)
     return reinterpret_cast<void*&>(regs.__r[1]);
 #elif CPU(ARM64)
@@ -569,6 +577,10 @@ inline void* wasmInstancePointer(const PlatformRegisters& regs)
     return reinterpret_cast<void*>(regs.__rbx);
 #elif CPU(ARM64)
     return reinterpret_cast<void*>(regs.__x[19]);
+#elif CPU(X86) && !ENABLE(WEBASSEMBLY)
+    // DARLING: i386 has no WebAssembly, so no register holds an instance.
+    UNUSED_PARAM(regs);
+    return nullptr;
 #else
 #error Unknown Architecture
 #endif

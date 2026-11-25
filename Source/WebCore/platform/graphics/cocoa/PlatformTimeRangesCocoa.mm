@@ -24,6 +24,9 @@
  */
 
 #import "config.h"
+
+// DARLING: needs CoreMedia and VideoToolbox, whose soft links come with AVFoundation
+#if USE(AVFOUNDATION)
 #import "PlatformTimeRanges.h"
 
 #if PLATFORM(COCOA)
@@ -57,3 +60,5 @@ RetainPtr<NSArray> makeNSArray(const PlatformTimeRanges& timeRanges)
 } // namespace WebCore
 
 #endif // PLATFORM(COCOA)
+
+#endif // USE(AVFOUNDATION)

@@ -1277,14 +1277,24 @@ static WebKit::AttributionOverrideTesting toAttributionOverrideTesting(_WKAttrib
     _pageConfiguration->setContextMenuQRCodeDetectionEnabled(contextMenuQRCodeDetectionEnabled);
 }
 
+// DARLING: the setting is for the Touch Bar's editing controls, and is kept
+// only with it (APIPageConfiguration.h).
 - (BOOL)_requiresUserActionForEditingControlsManager
 {
+#if HAVE(TOUCH_BAR)
     return _pageConfiguration->requiresUserActionForEditingControlsManager();
+#else
+    return NO;
+#endif
 }
 
 - (void)_setRequiresUserActionForEditingControlsManager:(BOOL)requiresUserAction
 {
+#if HAVE(TOUCH_BAR)
     _pageConfiguration->setRequiresUserActionForEditingControlsManager(requiresUserAction);
+#else
+    UNUSED_PARAM(requiresUserAction);
+#endif
 }
 
 - (WKPageGroupRef)_pageGroup

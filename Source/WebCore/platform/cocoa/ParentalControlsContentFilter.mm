@@ -33,6 +33,9 @@
 #import "ResourceResponse.h"
 #import "SharedBuffer.h"
 #import <objc/runtime.h>
+// DARLING: the completion handler is called whatever filter is used, so it is
+// imported for all of them, not only with WebContentRestrictions.
+#import <wtf/CompletionHandler.h>
 #import <wtf/SoftLinking.h>
 #import <wtf/TZoneMallocInlines.h>
 #import <wtf/WorkQueue.h>
@@ -40,7 +43,6 @@
 
 #if HAVE(WEBCONTENTRESTRICTIONS)
 #import <WebCore/ParentalControlsURLFilter.h>
-#import <wtf/CompletionHandler.h>
 #import <pal/cocoa/WebContentRestrictionsSoftLink.h>
 #elif HAVE(WEBCONTENTANALYSIS_FRAMEWORK)
 #import <pal/spi/cocoa/WebFilterEvaluatorSPI.h>

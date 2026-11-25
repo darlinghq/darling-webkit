@@ -28,7 +28,9 @@
 #include <VideoToolbox/VideoToolbox.h>
 #include "CMBaseObjectSPI.h"
 
-#if defined __has_include && __has_include(<CoreFoundation/CFPriv.h>)
+// DARLING: an SDK with CFPriv.h is not Apple's internal one when the build
+// says so (USE_APPLE_INTERNAL_SDK=0).
+#if defined __has_include && __has_include(<CoreFoundation/CFPriv.h>) && !(defined(USE_APPLE_INTERNAL_SDK) && !USE_APPLE_INTERNAL_SDK)
 #include <VideoToolbox/VTVideoDecoder.h>
 #include <VideoToolbox/VTVideoDecoderRegistration.h>
 #else

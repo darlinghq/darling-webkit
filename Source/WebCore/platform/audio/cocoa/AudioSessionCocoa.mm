@@ -48,7 +48,8 @@ WTF_MAKE_TZONE_ALLOCATED_IMPL(AudioSessionCocoa);
 
 void AudioSessionCocoa::setEligibleForSmartRoutingInternal(bool eligible)
 {
-#if HAVE(AVAUDIOSESSION_SMARTROUTING)
+// DARLING: AVAudioSession is reached through the AVFoundation soft link.
+#if HAVE(AVAUDIOSESSION_SMARTROUTING) && USE(AVFOUNDATION)
     if (!AudioSession::shouldManageAudioSessionCategory())
         return;
 
@@ -95,7 +96,8 @@ void AudioSessionCocoa::setEligibleForSmartRouting(bool isEligible, ForceUpdate 
 
 bool AudioSessionCocoa::tryToSetActiveInternal(bool active)
 {
-#if HAVE(AVAUDIOSESSION)
+// DARLING: AVAudioSession is reached through the AVFoundation soft link.
+#if HAVE(AVAUDIOSESSION) && USE(AVFOUNDATION)
     // FIXME: This is a safer cpp false positive (160259918).
     SUPPRESS_UNRETAINED_ARG static bool supportsSharedInstance = [PAL::getAVAudioSessionClassSingleton() respondsToSelector:@selector(sharedInstance)];
     // FIXME: This is a safer cpp false positive (160259918).
