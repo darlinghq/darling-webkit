@@ -620,7 +620,7 @@ void RemoteGraphicsContextGLProxy::abandonGpuProcess()
 
 void RemoteGraphicsContextGLProxy::disconnectGpuProcessIfNeeded()
 {
-#if PLATFORM(COCOA)
+#if PLATFORM(COCOA) && ENABLE(VIDEO)
     m_sharedVideoFrameWriter.disable();
 #endif
     if (!m_streamConnection)

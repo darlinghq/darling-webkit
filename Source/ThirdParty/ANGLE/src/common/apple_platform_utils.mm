@@ -16,6 +16,12 @@
 #include <Foundation/Foundation.h>
 #include <Metal/Metal.h>
 
+#if defined(ANGLE_PLATFORM_MACOS) || defined(ANGLE_PLATFORM_MACCATALYST)
+// DARLING: GetMacosMachineModel() uses IOKit, which macOS's Foundation headers bring in only
+// indirectly (through CoreServices); Darling's do not.
+#    include <IOKit/IOKitLib.h>
+#endif
+
 namespace angle
 {
 

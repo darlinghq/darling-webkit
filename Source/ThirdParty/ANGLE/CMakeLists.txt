@@ -1,6 +1,8 @@
 set_property(DIRECTORY . PROPERTY FOLDER "ANGLE")
 
 if (APPLE)
+    # GLESv2.cmake adds the Apple system utilities under is_apple, as ANGLE's GN build does.
+    set(is_apple TRUE)
     set(is_mac TRUE)
 elseif (WIN32)
     set(is_win TRUE)

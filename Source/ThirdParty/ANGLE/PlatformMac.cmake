@@ -9,7 +9,8 @@ find_package(ZLIB REQUIRED)
 list(APPEND ANGLE_SOURCES
     ${metal_backend_sources}
 
-    ${angle_translator_lib_metal_sources}
+    ${angle_translator_lib_msl_sources}
+    ${angle_translator_glsl_apple_sources}
 
     ${libangle_gpu_info_util_mac_sources}
     ${libangle_gpu_info_util_sources}
@@ -28,3 +29,11 @@ list(APPEND ANGLEGLESv2_LIBRARIES
     ${METAL_LIBRARY}
     ${QUARTZ_LIBRARY}
 )
+
+if (DARLING)
+    # DARLING: Darling's SDK headers default to the macOS 10.15 API level, below
+    # the deployment target WebKit is built for. ANGLE requires the macOS 12 SDK
+    # and selects Metal formats by SDK level, so it is built at the API level
+    # of the deployment target, whose Metal API Darling's headers declare.
+    list(APPEND ANGLE_DEFINITIONS __MAC_OS_X_VERSION_MAX_ALLOWED=140000)
+endif ()
