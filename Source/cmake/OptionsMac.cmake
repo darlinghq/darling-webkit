@@ -202,8 +202,10 @@ WEBKIT_OPTION_DEFAULT_PORT_VALUE(USE_WOFF2 PRIVATE OFF)
 # DARLING: the features Darling's WebKit is built without. Media playback,
 # capture and the other features below need the media frameworks
 # (AVFoundation, CoreMedia, VideoToolbox) and services Darling does not
-# implement yet; WebRTC's libwebrtc needs NASM, WebGL's ANGLE and WebGPU need
-# Metal. Content filtering needs NetworkExtension's NEFilterSource, and
+# implement yet; WebRTC's libwebrtc needs NASM. WebGL builds, but ANGLE compiles
+# its shaders to MSL source at runtime, which Darling's Metal shader compiler does
+# not accept yet; WebGPU has no CMake build of its framework. Content
+# filtering needs NetworkExtension's NEFilterSource, and
 # Darling has no NetworkExtension framework. The GPU process is built, as
 # WebKit's Cocoa code expects it; whether pages use it is a preference.
 if (DARLING)

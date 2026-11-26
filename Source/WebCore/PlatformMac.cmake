@@ -284,6 +284,8 @@ list(APPEND WebCore_SOURCES
     platform/graphics/DisplayRefreshMonitorManager.cpp
     platform/graphics/FourCC.cpp
 
+    platform/graphics/angle/ANGLEUtilities.cpp
+
     platform/graphics/avfoundation/AVTrackPrivateAVFObjCImpl.mm
     platform/graphics/avfoundation/AudioSourceProviderAVFObjC.mm
     platform/graphics/avfoundation/CDMFairPlayStreaming.cpp
@@ -356,6 +358,7 @@ list(APPEND WebCore_SOURCES
     platform/graphics/cg/TransformationMatrixCG.cpp
     platform/graphics/cg/UTIRegistry.mm
 
+    platform/graphics/cocoa/ANGLEUtilitiesCocoa.mm
     platform/graphics/cocoa/CMUtilities.mm
     platform/graphics/cocoa/FloatRectCocoa.mm
     platform/graphics/cocoa/FontCacheCoreText.cpp
@@ -378,6 +381,8 @@ list(APPEND WebCore_SOURCES
     platform/graphics/cocoa/WebLayer.mm
     platform/graphics/cocoa/WebMAudioUtilitiesCocoa.mm
     platform/graphics/cocoa/WebProcessGraphicsContextGLCocoa.mm
+
+    platform/graphics/gpu/cocoa/GPUAvailabilityMetal.mm
 
     platform/graphics/coretext/ComplexTextControllerCoreText.mm
     platform/graphics/coretext/FontCascadeCoreText.cpp

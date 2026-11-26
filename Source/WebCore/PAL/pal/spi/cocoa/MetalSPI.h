@@ -66,9 +66,9 @@ typedef struct __IOSurface *IOSurfaceRef;
 - (mach_port_t)eventPort;
 @end
 
-// DARLING: only WebGL and WebXR share textures, and Darling's Metal has no
-// MTLSharedTextureHandle for builds without them.
-#if !PLATFORM(IOS_FAMILY_SIMULATOR) && (ENABLE(WEBGL) || ENABLE(WEBXR))
+// DARLING: Darling's Metal has no MTLSharedTextureHandle. Only WebXR gives
+// WebGL a texture shared from another process.
+#if !PLATFORM(IOS_FAMILY_SIMULATOR) && ENABLE(WEBXR)
 @interface MTLSharedTextureHandle(Private)
 - (instancetype)initWithIOSurface:(IOSurfaceRef)ioSurface label:(NSString*)label;
 - (instancetype)initWithMachPort:(mach_port_t)machPort;

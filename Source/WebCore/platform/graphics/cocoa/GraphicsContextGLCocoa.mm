@@ -543,7 +543,7 @@ GCGLExternalImage GraphicsContextGLCocoa::createExternalImage(ExternalImageSourc
         return tex;
     },
     [&](EGLImageSourceMTLSharedTextureHandle&& sharedTexture) -> RetainPtr<id> {
-#if PLATFORM(IOS_FAMILY_SIMULATOR)
+#if PLATFORM(IOS_FAMILY_SIMULATOR) || !ENABLE(WEBXR) // DARLING: only WebXR shares a texture, see MetalSPI.h
         UNUSED_VARIABLE(sharedTexture);
         ASSERT_NOT_REACHED();
         return nullptr;
@@ -833,8 +833,12 @@ RefPtr<GraphicsLayerContentsDisplayDelegate> GraphicsContextGLCocoa::layerConten
 
 void GraphicsContextGLCocoa::invalidateKnownTextureContent(GCGLuint texture)
 {
+#if ENABLE(VIDEO) // DARLING: the CoreVideo context is only there with video
     if (m_cv)
         m_cv->invalidateKnownTextureContent(texture);
+#else
+    UNUSED_PARAM(texture);
+#endif
 }
 
 RefPtr<NativeImage> GraphicsContextGLCocoa::copyNativeImageYFlipped(SurfaceBuffer buffer)
